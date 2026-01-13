@@ -1,0 +1,8 @@
+﻿AddProductPage.tsx
+ContactSuppliersPage.tsx
+DashboardOverview.tsx
+ProductsPage.tsx
+ReportsPage.tsx
+SettingsPage.tsx
+SupplierDetailsPage.tsx
+SupplierListPage.tsx
