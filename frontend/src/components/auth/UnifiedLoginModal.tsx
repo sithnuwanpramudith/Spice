@@ -23,19 +23,13 @@ const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({ isOpen, onClose }
         setLoading(true);
 
         try {
-            // In a real app, the backend would return the user data with role.
-            // Our mock AuthContext handles this.
-            // For the demo:
-            // if email contains 'admin' -> admin role
-            // else -> customer role
-            const role = email.toLowerCase().includes('admin') ? 'owner' : 'customer';
-
-            await login({ email, password, role });
+            // The AuthContext now handles role determination via authService
+            const user = await login({ email, password });
 
             onClose();
 
-            // Redirect based on role as requested
-            if (role === 'owner') {
+            // Redirect based on role returned from "backend"
+            if (user.role === 'owner') {
                 navigate('/admin-dashboard');
             } else {
                 navigate('/customer-dashboard');

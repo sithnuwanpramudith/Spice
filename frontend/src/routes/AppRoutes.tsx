@@ -29,7 +29,7 @@ const AppRoutes = () => {
                 <Route path="/" element={<HomePage />} />
 
                 {/* Dashboards - Unified Paths */}
-                <Route path="/customer-dashboard/*" element={
+                <Route path="/customer-dashboard" element={
                     <ProtectedRoute allowedRoles={['customer']}>
                         <CustomerDashboardPage />
                     </ProtectedRoute>
@@ -42,7 +42,7 @@ const AppRoutes = () => {
                 } />
 
                 {/* Legacy Paths Aliases */}
-                <Route path="/customer/*" element={<Navigate to="/customer-dashboard" replace />} />
+                <Route path="/customer" element={<Navigate to="/customer-dashboard" replace />} />
                 <Route path="/owner/*" element={<Navigate to="/admin-dashboard" replace />} />
 
 

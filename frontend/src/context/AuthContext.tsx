@@ -1,22 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-
-interface User {
-    id: string;
-    name: string;
-    email: string;
-    role: 'owner' | 'supplier' | 'customer';
-}
+import { authService } from '../services/authService';
+import type { User } from '../services/authService';
 
 export interface LoginCredentials {
     email: string;
     password?: string;
-    role?: 'owner' | 'supplier' | 'customer';
 }
 
 interface AuthContextType {
     user: User | null;
-    login: (credentials: LoginCredentials) => Promise<void>;
+    login: (credentials: LoginCredentials) => Promise<User>;
     logout: () => void;
     isAuthenticated: boolean;
 }
@@ -27,21 +21,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [user, setUser] = useState<User | null>(null);
 
     useEffect(() => {
-        const savedUser = localStorage.getItem('spice_user');
+        const savedUser = authService.getCurrentUser();
         if (savedUser) {
-            setUser(JSON.parse(savedUser));
+            setUser(savedUser);
         }
     }, []);
 
-    const login = async (credentials: LoginCredentials) => {
-        const mockUser: User = {
-            id: '1',
-            name: credentials.email.split('@')[0],
-            email: credentials.email,
-            role: credentials.role || 'customer'
-        };
-        setUser(mockUser);
-        localStorage.setItem('spice_user', JSON.stringify(mockUser));
+    const login = async (credentials: LoginCredentials): Promise<User> => {
+        try {
+            const response = await authService.login(credentials.email, credentials.password || '');
+            setUser(response.user);
+            localStorage.setItem('spice_user', JSON.stringify(response.user));
+            return response.user;
+        } catch (error) {
+            throw error;
+        }
     };
 
     const logout = () => {

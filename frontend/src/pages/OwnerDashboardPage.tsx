@@ -17,12 +17,12 @@ const OwnerDashboardPage = () => {
     const location = useLocation();
 
     const menuItems = [
-        { name: 'Dashboard', icon: TrendingUp, path: '/owner' },
-        { name: 'Suppliers', icon: Users, path: '/owner/suppliers' },
-        { name: 'Products', icon: Package, path: '/owner/products' }, // Placeholder for products list if needed
-        { name: 'Orders', icon: ShoppingCart, path: '/owner/orders' },
-        { name: 'Reports', icon: TrendingUp, path: '/owner/reports' }, // Using TrendingUp for reports too
-        { name: 'Settings', icon: Settings, path: '/owner/settings' },
+        { name: 'Dashboard', icon: TrendingUp, path: '/admin-dashboard' },
+        { name: 'Suppliers', icon: Users, path: '/admin-dashboard/suppliers' },
+        { name: 'Products', icon: Package, path: '/admin-dashboard/products' },
+        { name: 'Orders', icon: ShoppingCart, path: '/admin-dashboard/orders' },
+        { name: 'Reports', icon: TrendingUp, path: '/admin-dashboard/reports' },
+        { name: 'Settings', icon: Settings, path: '/admin-dashboard/settings' },
     ];
 
     return (
@@ -43,7 +43,7 @@ const OwnerDashboardPage = () => {
                 zIndex: 10
             }}>
                 <div
-                    onClick={() => navigate('/owner')}
+                    onClick={() => navigate('/admin-dashboard')}
                     style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '0 10px', cursor: 'pointer' }}
                 >
                     <div style={{ width: '32px', height: '32px', background: 'var(--primary)', borderRadius: '8px', boxShadow: '0 0 15px var(--primary-glow)' }}></div>
@@ -52,7 +52,7 @@ const OwnerDashboardPage = () => {
 
                 <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto' }}>
                     {menuItems.map((item) => {
-                        const isActive = location.pathname === item.path || (item.path === '/owner' && location.pathname === '/owner/');
+                        const isActive = location.pathname === item.path || (item.path === '/admin-dashboard' && location.pathname === '/admin-dashboard/');
                         return (
                             <button
                                 key={item.name}
