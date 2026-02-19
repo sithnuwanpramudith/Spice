@@ -1,8 +1,10 @@
-import LoginForm from '../components/auth/LoginForm';
+import CustomerLoginForm from '../components/auth/CustomerLoginForm';
 import { motion } from 'framer-motion';
+
 import '../styles/pages/dashboard.css';
 
 const LoginPage = () => {
+
     return (
         <div style={{
             minHeight: '100vh',
@@ -10,7 +12,8 @@ const LoginPage = () => {
             alignItems: 'center',
             justifyContent: 'center',
             background: 'radial-gradient(circle at top right, rgba(212, 175, 55, 0.1), transparent), radial-gradient(circle at bottom left, rgba(128, 0, 0, 0.1), transparent)',
-            padding: '20px'
+            padding: '20px',
+            position: 'relative'
         }}>
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -26,7 +29,9 @@ const LoginPage = () => {
                         Premium Quality Spices
                     </p>
                 </div>
-                <LoginForm />
+                <CustomerLoginForm />
+
+
             </motion.div>
         </div>
     );

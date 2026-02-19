@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { ShieldCheck, CreditCard, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 
+import { useOrders } from '../../context/OrderContext';
+
 interface CheckoutFormProps {
     onSuccess: (orderData: any) => void;
     onCancel: () => void;
@@ -10,10 +12,12 @@ interface CheckoutFormProps {
 
 const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
     const { cart, cartTotal, clearCart } = useCart();
+    const { addOrder } = useOrders();
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
         name: '',
         email: '',
+        whatsapp: '',
         address: '',
         city: '',
         zip: '',
@@ -26,19 +30,26 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
         setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (step === 1) {
             setStep(2);
         } else {
-            // Simulate order processing
-            const orderData = {
+            // Process order
+            const orderData: any = {
                 id: `ORD-${Math.floor(Math.random() * 1000000)}`,
                 items: cart,
-                total: cartTotal,
-                customer: formData,
-                date: new Date().toISOString()
+                total: `$${cartTotal.toFixed(2)}`, // Formatting for consistency
+                customer: formData.name,
+                email: formData.email,
+                whatsapp: formData.whatsapp,
+                address: `${formData.address}, ${formData.city}`,
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                status: 'Pending',
+                timestamp: Date.now()
             };
+
+            await addOrder(orderData);
             onSuccess(orderData);
             clearCart();
         }
@@ -88,17 +99,31 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
                                 style={{ width: '100%', padding: '12px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'white' }}
                             />
                         </div>
-                        <div className="form-group">
-                            <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Email Address</label>
-                            <input
-                                required
-                                type="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                placeholder="john@example.com"
-                                style={{ width: '100%', padding: '12px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'white' }}
-                            />
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                            <div className="form-group">
+                                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Email Address</label>
+                                <input
+                                    required
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    placeholder="john@example.com"
+                                    style={{ width: '100%', padding: '12px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'white' }}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>WhatsApp Number</label>
+                                <input
+                                    required
+                                    type="tel"
+                                    name="whatsapp"
+                                    value={formData.whatsapp}
+                                    onChange={handleChange}
+                                    placeholder="+94 77 123 4567"
+                                    style={{ width: '100%', padding: '12px', background: 'var(--bg-card)', border: '1px solid var(--border-glass)', borderRadius: '8px', color: 'white' }}
+                                />
+                            </div>
                         </div>
                         <div className="form-group">
                             <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Delivery Address</label>

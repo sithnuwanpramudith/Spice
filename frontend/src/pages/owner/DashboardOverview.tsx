@@ -1,9 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import StatCard from '../../components/owner/StatCard';
 import { TrendingUp, Users, Package, ShoppingCart } from 'lucide-react';
+import { useProducts } from '../../context/ProductContext';
+import ProductModal from '../../components/owner/ProductModal';
+import { useNavigate } from 'react-router-dom';
 import '../../styles/pages/dashboard.css';
 
 const DashboardOverview: React.FC = () => {
+    const navigate = useNavigate();
+    const { addProduct } = useProducts();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleModalSubmit = async (data: any) => {
+        await addProduct(data);
+        setIsModalOpen(false);
+    };
+
+    const handleQuickAction = (action: any) => {
+        if (action.name === 'Add Product') {
+            setIsModalOpen(true);
+        } else {
+            navigate(action.path);
+        }
+    };
+
     return (
         <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
             <header style={{ marginBottom: '40px' }}>
@@ -50,14 +70,14 @@ const DashboardOverview: React.FC = () => {
                     <h3 style={{ fontSize: '1.2rem' }}>Quick Actions</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                         {[
-                            { name: 'Add Product', icon: Package, path: '/owner/add-product', color: 'var(--primary)' },
+                            { name: 'Add Product', icon: Package, path: '#', color: 'var(--primary)' },
                             { name: 'Supplier List', icon: Users, path: '/owner/suppliers', color: '#4ade80' },
                             { name: 'Reports', icon: TrendingUp, path: '/owner/reports', color: '#60a5fa' },
                             { name: 'New Order', icon: ShoppingCart, path: '/owner/orders', color: '#f87171' }
                         ].map(action => (
                             <button
                                 key={action.name}
-                                onClick={() => (window.location.href = action.path)}
+                                onClick={() => handleQuickAction(action)}
                                 className="glass-panel float-hover"
                                 style={{
                                     padding: '20px',
@@ -66,7 +86,8 @@ const DashboardOverview: React.FC = () => {
                                     flexDirection: 'column',
                                     alignItems: 'center',
                                     gap: '10px',
-                                    border: '1px solid rgba(255,255,255,0.05)'
+                                    border: '1px solid rgba(255,255,255,0.05)',
+                                    cursor: 'pointer'
                                 }}
                             >
                                 <action.icon size={24} color={action.color} />
@@ -76,6 +97,13 @@ const DashboardOverview: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <ProductModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSubmit={handleModalSubmit}
+                mode="add"
+            />
 
             <style>{`
                 @keyframes fadeIn {

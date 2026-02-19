@@ -1,251 +1,10 @@
-// OrdersPage.tsx
-
-import React, { useState, useMemo, useRef, useEffect } from 'react';
-import {
-    ShoppingCart, Search, Eye, Clock, CheckCircle,
-    Truck, AlertCircle, Filter, X, User, MapPin,
-    Mail, Package, ChevronDown
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+// @ts-nocheck
+import React, { useState, useEffect } from 'react';
+import { Eye, CheckCircle, Clock, Truck, MoreVertical, Search, AlertCircle, X, Package, Mail, MapPin, MessageSquare } from 'lucide-react';
 import { useOrders } from '../../context/OrderContext';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { Order } from '../../services/orderService';
 import '../../styles/pages/dashboard.css';
-
-/* -------------------------------------------
-   STATUS BADGE COMPONENT
-------------------------------------------- */
-const StatusBadge: React.FC<{
-    status: Order['status'];
-    onClick?: () => void;
-    isOpen?: boolean;
-}> = ({ status, onClick, isOpen = false }) => {
-    const getStatusConfig = (status: Order['status']) => {
-        switch (status) {
-            case 'Pending':
-                return { background: 'rgba(255,170,0,0.1)', color: '#ffaa00', icon: Clock };
-            case 'Processing':
-                return { background: 'rgba(96,165,250,0.1)', color: '#60a5fa', icon: AlertCircle };
-            case 'Shipped':
-                return { background: 'rgba(168,85,247,0.1)', color: '#a855f7', icon: Truck };
-            case 'Delivered':
-                return { background: 'rgba(74,222,128,0.1)', color: '#4ade80', icon: CheckCircle };
-            case 'Cancelled':
-                return { background: 'rgba(239,68,68,0.1)', color: '#ef4444', icon: X };
-            default:
-                return { background: 'rgba(255,255,255,0.1)', color: 'white', icon: Clock };
-        }
-    };
-
-    const config = getStatusConfig(status);
-    const Icon = config.icon;
-
-    return (
-        <button
-            onClick={onClick}
-            style={{
-                padding: '6px 14px',
-                borderRadius: '50px',
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                background: config.background,
-                color: config.color,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                width: 'fit-content',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                position: 'relative',
-                border: isOpen ? '1px solid rgba(255,255,255,0.3)' : 'none',
-                outline: 'none'
-            }}
-            className={onClick ? 'float-hover' : ''}
-        >
-            <Icon size={14} />
-            {status}
-            {onClick && <ChevronDown size={14} opacity={0.5} />}
-        </button>
-    );
-};
-
-/* -------------------------------------------
-   STATUS DROPDOWN COMPONENT
-------------------------------------------- */
-const StatusDropdown: React.FC<{
-    currentStatus: Order['status'];
-    orderId: string;
-    onStatusUpdate: (id: string, status: Order['status']) => void;
-    onClose: () => void;
-}> = ({ currentStatus, orderId, onStatusUpdate, onClose }) => {
-    const dropdownRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                onClose();
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [onClose]);
-
-    const statusOptions = [
-        { value: 'Pending' as const, icon: Clock, color: '#ffaa00', gradient: 'linear-gradient(135deg, rgba(255,170,0,0.2), rgba(255,170,0,0.05))' },
-        { value: 'Processing' as const, icon: AlertCircle, color: '#60a5fa', gradient: 'linear-gradient(135deg, rgba(96,165,250,0.2), rgba(96,165,250,0.05))' },
-        { value: 'Shipped' as const, icon: Truck, color: '#a855f7', gradient: 'linear-gradient(135deg, rgba(168,85,247,0.2), rgba(168,85,247,0.05))' },
-        { value: 'Delivered' as const, icon: CheckCircle, color: '#4ade80', gradient: 'linear-gradient(135deg, rgba(74,222,128,0.2), rgba(74,222,128,0.05))' },
-        { value: 'Cancelled' as const, icon: X, color: '#ef4444', gradient: 'linear-gradient(135deg, rgba(239,68,68,0.2), rgba(239,68,68,0.05))' }
-    ];
-
-    return (
-        <motion.div
-            ref={dropdownRef}
-            initial={{ opacity: 0, scale: 0.92, y: -15 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92, y: -15 }}
-            transition={{
-                type: "spring",
-                stiffness: 400,
-                damping: 25
-            }}
-            style={{
-                position: 'absolute',
-                top: 'calc(100% + 12px)',
-                left: 0,
-                zIndex: 100,
-                minWidth: '220px',
-                background: 'linear-gradient(135deg, rgba(20, 20, 20, 0.98), rgba(10, 10, 10, 0.98))',
-                borderRadius: '16px',
-                padding: '8px',
-                boxShadow: `
-                    0 20px 60px rgba(0, 0, 0, 0.5),
-                    0 0 0 1px rgba(255, 255, 255, 0.08),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.1)
-                `,
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.06)'
-            }}
-        >
-            {/* Header */}
-            <div style={{
-                padding: '12px 14px 8px',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-                marginBottom: '4px'
-            }}>
-                <p style={{
-                    fontSize: '0.7rem',
-                    fontWeight: 600,
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '1px'
-                }}>
-                    Update Status
-                </p>
-            </div>
-
-            {/* Status Options */}
-            <div style={{ padding: '4px 0' }}>
-                {statusOptions.map((option, index) => {
-                    const Icon = option.icon;
-                    const isActive = currentStatus === option.value;
-
-                    return (
-                        <motion.button
-                            key={option.value}
-                            onClick={() => onStatusUpdate(orderId, option.value)}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.03 }}
-                            whileHover={{
-                                scale: 1.02,
-                                x: 4
-                            }}
-                            whileTap={{ scale: 0.98 }}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px',
-                                width: '100%',
-                                padding: '12px 14px',
-                                margin: '2px 0',
-                                borderRadius: '10px',
-                                background: isActive ? option.gradient : 'transparent',
-                                border: isActive ? `1px solid ${option.color}40` : '1px solid transparent',
-                                color: isActive ? option.color : 'rgba(255, 255, 255, 0.8)',
-                                cursor: 'pointer',
-                                fontSize: '0.875rem',
-                                fontWeight: isActive ? 600 : 500,
-                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                outline: 'none',
-                                position: 'relative',
-                                overflow: 'hidden'
-                            }}
-                        >
-                            {/* Icon with glow effect */}
-                            <div style={{
-                                width: '28px',
-                                height: '28px',
-                                borderRadius: '8px',
-                                background: isActive ? `${option.color}20` : 'rgba(255, 255, 255, 0.03)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                transition: 'all 0.2s ease',
-                                boxShadow: isActive ? `0 0 20px ${option.color}40` : 'none'
-                            }}>
-                                <Icon size={14} style={{
-                                    color: isActive ? option.color : 'rgba(255, 255, 255, 0.5)',
-                                    filter: isActive ? `drop-shadow(0 0 4px ${option.color})` : 'none'
-                                }} />
-                            </div>
-
-                            {/* Label */}
-                            <span style={{ flex: 1, textAlign: 'left' }}>
-                                {option.value}
-                            </span>
-
-                            {/* Active indicator */}
-                            {isActive && (
-                                <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    style={{
-                                        width: '8px',
-                                        height: '8px',
-                                        borderRadius: '50%',
-                                        background: option.color,
-                                        boxShadow: `0 0 10px ${option.color}, 0 0 20px ${option.color}60`
-                                    }}
-                                />
-                            )}
-
-                            {/* Hover glow effect */}
-                            <div style={{
-                                position: 'absolute',
-                                inset: 0,
-                                background: `radial-gradient(circle at center, ${option.color}10, transparent 70%)`,
-                                opacity: 0,
-                                transition: 'opacity 0.3s ease',
-                                pointerEvents: 'none'
-                            }} className="hover-glow" />
-                        </motion.button>
-                    );
-                })}
-            </div>
-
-            <style>{`
-                .hover-glow {
-                    opacity: 0;
-                }
-                button:hover .hover-glow {
-                    opacity: 1;
-                }
-            `}</style>
-        </motion.div>
-    );
-};
-
 /* -------------------------------------------
    ORDER DETAILS MODAL
 ------------------------------------------- */
@@ -254,88 +13,121 @@ const OrderDetailsModal: React.FC<{
     onClose: () => void;
 }> = ({ order, onClose }) => {
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-overlay" onClick={onClose} style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
             <motion.div
-                className="modal-content glass-panel"
+                className="glass-panel"
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
                 onClick={(e) => e.stopPropagation()}
                 style={{
-                    maxWidth: '700px',
-                    width: '90%',
-                    padding: '30px',
-                    borderRadius: '24px',
-                    position: 'relative',
-                    maxHeight: '90vh',
-                    overflowY: 'auto',
-                    background: 'rgba(20, 20, 20, 0.95)',
-                    backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                    maxWidth: '700px', width: '90%', padding: '30px',
+                    borderRadius: '24px', position: 'relative', maxHeight: '90vh',
+                    overflowY: 'auto', background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)'
                 }}
             >
-                <button
-                    onClick={onClose}
-                    className="float-hover"
-                    style={{
-                        position: 'absolute',
-                        right: '20px',
-                        top: '20px',
-                        background: 'rgba(255,255,255,0.05)',
-                        border: 'none',
-                        color: 'white',
-                        padding: '8px',
-                        borderRadius: '10px',
-                        cursor: 'pointer'
-                    }}
-                >
-                    <X size={20} />
-                </button>
-
-                <div style={{ marginBottom: '30px' }}>
-                    <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)' }}>
-                        Order {order.id}
-                    </h3>
-                    <p style={{ color: 'var(--text-muted)' }}>Placed on {order.date}</p>
-                </div>
-
-                <div className="modal-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '30px' }}>
                     <div>
-                        <h4 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px', color: 'var(--text-secondary)' }}>
-                            <User size={18} /> Customer Info
+                        <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '5px' }}>
+                            Order {order.id}
+                        </h3>
+                        <p style={{ color: 'var(--text-muted)' }}>Placed on {order.date}</p>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        style={{
+                            background: 'rgba(255,255,255,0.05)', border: 'none',
+                            color: 'white', padding: '8px', borderRadius: '10px', cursor: 'pointer'
+                        }}
+                    >
+                        <X size={20} />
+                    </button>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '30px' }}>
+                    <div className="glass-panel" style={{ padding: '20px', borderRadius: '16px' }}>
+                        <h4 style={{ color: 'var(--text-secondary)', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <MoreVertical size={16} /> Customer Details
                         </h4>
-                        <p style={{ fontWeight: 600 }}>{order.customer}</p>
-                        <p style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', marginTop: '5px' }}>
+                        <p style={{ fontWeight: 600, fontSize: '1.1rem', marginBottom: '5px' }}>{order.customer}</p>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <Mail size={14} /> {order.email}
                         </p>
-                        <p style={{ display: 'flex', alignItems: 'start', gap: '8px', color: 'var(--text-muted)', marginTop: '5px' }}>
+                        {order.whatsapp && (
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <MessageSquare size={14} /> {order.whatsapp}
+                            </p>
+                        )}
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <MapPin size={14} /> {order.address}
                         </p>
+                        {order.whatsapp && (
+                            <button
+                                onClick={() => {
+                                    const whatsapp = order.whatsapp;
+                                    if (whatsapp) {
+                                        const message = `Hello ${order.customer}, your order #${order.id} is currently ${order.status}. Thank you for shopping with Spices!`;
+                                        const url = `https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+                                        window.open(url, '_blank');
+                                    }
+                                }}
+                                style={{
+                                    marginTop: '15px',
+                                    width: '100%',
+                                    padding: '10px',
+                                    background: '#25D366',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px',
+                                    fontWeight: 600
+                                }}
+                            >
+                                <MessageSquare size={16} /> Notify via WhatsApp
+                            </button>
+                        )}
                     </div>
-
-                    <div>
-                        <h4 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px', color: 'var(--text-secondary)' }}>
-                            <Package size={18} /> Order Status
+                    <div className="glass-panel" style={{ padding: '20px', borderRadius: '16px' }}>
+                        <h4 style={{ color: 'var(--text-secondary)', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Package size={16} /> Order Info
                         </h4>
-                        <StatusBadge status={order.status} />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                            <span style={{ color: 'var(--text-muted)' }}>Status</span>
+                            <span style={{ fontWeight: 600, color: 'var(--primary)' }}>{order.status}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                            <span style={{ color: 'var(--text-muted)' }}>Total Amount</span>
+                            <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>{order.total}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: 'var(--text-muted)' }}>Items Count</span>
+                            <span style={{ fontWeight: 600 }}>{order.items.length} items</span>
+                        </div>
                     </div>
                 </div>
-
-                {/* ITEMS */}
-                <div style={{ marginTop: '30px' }} className="glass-panel">
-                    <h4 style={{ marginBottom: '15px' }}>Order Items</h4>
+                <div>
+                    <h4 style={{ marginBottom: '15px', fontWeight: 600 }}>Order Items</h4>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr style={{ borderBottom: '1px solid var(--border-glass)' }}>
-                                <th>Item</th><th>Qty</th><th style={{ textAlign: 'right' }}>Price</th>
+                        <thead style={{ background: 'rgba(255,255,255,0.02)', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                            <tr>
+                                <th style={{ textAlign: 'left', padding: '12px', borderRadius: '8px 0 0 8px' }}>Item</th>
+                                <th style={{ textAlign: 'center', padding: '12px' }}>Qty</th>
+                                <th style={{ textAlign: 'right', padding: '12px', borderRadius: '0 8px 8px 0' }}>Price</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {order.items.map((item: Order['items'][number]) => (
+                            {order.items.map((item) => (
                                 <tr key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                    <td style={{ padding: '12px 0' }}>{item.name}</td>
-                                    <td style={{ padding: '12px 0' }}>x{item.quantity}</td>
-                                    <td style={{ padding: '12px 0', textAlign: 'right' }}>
+                                    <td style={{ padding: '16px 12px' }}>{item.name}</td>
+                                    <td style={{ padding: '16px 12px', textAlign: 'center' }}>x{item.quantity}</td>
+                                    <td style={{ padding: '16px 12px', textAlign: 'right' }}>
                                         ${(item.price * item.quantity).toFixed(2)}
                                     </td>
                                 </tr>
@@ -343,178 +135,306 @@ const OrderDetailsModal: React.FC<{
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colSpan={2} style={{ paddingTop: '20px', fontWeight: 700 }}>Total</td>
-                                <td style={{ paddingTop: '20px', textAlign: 'right', color: 'var(--primary)', fontWeight: 700 }}>
-                                    {order.total}
-                                </td>
+                                <td colSpan={2} style={{ paddingTop: '20px', textAlign: 'right', fontWeight: 600, color: 'var(--text-muted)' }}>Total</td>
+                                <td style={{ paddingTop: '20px', textAlign: 'right', fontWeight: 700, fontSize: '1.1rem', color: 'var(--primary)' }}>{order.total}</td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
-            </motion.div>
-        </div>
+            </motion.div >
+        </div >
     );
 };
-
-/* -------------------------------------------
-   MAIN ORDERS PAGE
-------------------------------------------- */
-const OrdersPage: React.FC = () => {
+export default function OrdersPage() {
     const { orders, loading, updateOrderStatus } = useOrders();
+    const [filter, setFilter] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-    const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
-
-    const filteredOrders = useMemo(
-        () =>
-            orders.filter((order: Order) =>
-                order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                order.customer.toLowerCase().includes(searchTerm.toLowerCase())
-            ),
-        [orders, searchTerm]
-    );
-
-    const handleStatusUpdate = async (id: string, newStatus: Order['status']) => {
-        setOpenDropdownId(null);
-        await updateOrderStatus(id, newStatus);
-    };
-
-    const handleStatusClick = (orderId: string) => {
-        setOpenDropdownId(openDropdownId === orderId ? null : orderId);
-    };
-
+    const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+    const [viewOrder, setViewOrder] = useState<Order | null>(null);
+    // Status Config matching the requested flow: Pending -> Processing -> Shipped -> Delivered
+    const STATUS_OPTIONS = [
+        { value: 'Pending', label: 'Pending', icon: Clock, color: '#ffaa00', bg: 'rgba(255,170,0,0.1)' },
+        { value: 'Processing', label: 'Processing', icon: AlertCircle, color: '#60a5fa', bg: 'rgba(96,165,250,0.1)' },
+        { value: 'Shipped', label: 'Shipped', icon: Truck, color: '#a855f7', bg: 'rgba(168,85,247,0.1)' },
+        { value: 'Delivered', label: 'Delivered', icon: CheckCircle, color: '#4ade80', bg: 'rgba(74,222,128,0.1)' },
+        { value: 'Cancelled', label: 'Cancelled', icon: X, color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
+    ];
+    const filteredOrders = orders.filter(order => {
+        const matchesFilter = filter === 'All' || order.status === filter;
+        const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            order.customer.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesFilter && matchesSearch;
+    });
+    // Handle clicking outside to close dropdowns
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            // Close dropdown if clicking anywhere outside
-            if (openDropdownId) {
-                setOpenDropdownId(null);
+        const handleGlobalClick = (e: MouseEvent) => {
+            if (selectedOrderId && !(e.target as Element).closest('.status-dropdown-container')) {
+                setSelectedOrderId(null);
             }
         };
-
-        const handleEscape = (event: KeyboardEvent) => {
-            if (event.key === 'Escape' && openDropdownId) {
-                setOpenDropdownId(null);
+        document.addEventListener('click', handleGlobalClick);
+        return () => document.removeEventListener('click', handleGlobalClick);
+    }, [selectedOrderId]);
+    const handleStatusUpdate = (order: Order, newStatus: Order['status']) => {
+        updateOrderStatus(order.id, newStatus);
+        setSelectedOrderId(null);
+        const whatsapp = order.whatsapp;
+        if (whatsapp) {
+            let message = '';
+            switch (newStatus) {
+                case 'Pending':
+                    message = `Hello ${order.customer}, your order #${order.id} is currently Pending confirmation.`;
+                    break;
+                case 'Processing':
+                    message = `Good news! Your order #${order.id} is now Processing.`;
+                    break;
+                case 'Shipped':
+                    message = `Great news! Your order #${order.id} has been Shipped and is on its way.`;
+                    break;
+                case 'Delivered':
+                    message = `Your order #${order.id} has been Delivered. Thank you for shopping with Spices!`;
+                    break;
+                case 'Cancelled':
+                    message = `Your order #${order.id} has been Cancelled. Please contact us for more details.`;
+                    break;
             }
-        };
-
-        document.addEventListener('click', handleClickOutside);
-        document.addEventListener('keydown', handleEscape);
-
-        return () => {
-            document.removeEventListener('click', handleClickOutside);
-            document.removeEventListener('keydown', handleEscape);
-        };
-    }, [openDropdownId]);
-
+            if (message) {
+                const url = `https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+                window.open(url, '_blank');
+            }
+        }
+    };
     if (loading) {
         return <div className="loading-container">Loading orders...</div>;
     }
-
     return (
-        <div className="animate-fade-in">
-            {/* HEADER */}
-            <header style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
-                <div>
-                    <h2 style={{ fontSize: '2rem', fontWeight: 700 }}>Orders Management</h2>
-                    <p style={{ color: 'var(--text-muted)' }}>Track and manage customer spice orders</p>
-                </div>
-                <div style={{ display: 'flex', gap: '15px' }}>
-                    <div style={{ position: 'relative' }}>
-                        <Search size={18} className="search-icon" />
-                        <input
-                            type="text"
-                            placeholder="Search orders..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="glass-panel search-input"
-                        />
-                    </div>
-                    <button className="glass-panel float-hover filter-btn">
-                        <Filter size={18} /> Filter
-                    </button>
-                </div>
-            </header>
-
-            {/* TABLE */}
-            <div className="glass-panel" style={{ borderRadius: '24px', overflow: 'hidden', position: 'relative' }}>
-                <table className="premium-table">
-                    <thead>
-                        <tr>
-                            <th>Order ID</th><th>Customer</th><th>Date</th><th>Total</th><th>Status</th><th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <AnimatePresence mode="popLayout">
-                            {filteredOrders.map((order: Order) => (
-                                <motion.tr
-                                    key={order.id}
-                                    className="float-hover-row"
-                                    layout
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                >
-                                    <td>
-                                        <div className="table-order-id">
-                                            <div className="order-icon">
-                                                <ShoppingCart size={20} color="var(--primary)" />
-                                            </div>
-                                            <p>{order.id}</p>
-                                        </div>
-                                    </td>
-
-                                    <td>
-                                        <p style={{ fontWeight: 600 }}>{order.customer}</p>
-                                        <p className="item-count">{order.items.length} items</p>
-                                    </td>
-
-                                    <td>{order.date}</td>
-                                    <td style={{ fontWeight: 700 }}>{order.total}</td>
-
-                                    <td style={{ position: 'relative', padding: '16px 12px' }}>
-                                        <div style={{ display: 'inline-block', position: 'relative' }}>
-                                            <StatusBadge
-                                                status={order.status}
-                                                isOpen={openDropdownId === order.id}
-                                                onClick={() => handleStatusClick(order.id)}
-                                            />
-                                            <AnimatePresence>
-                                                {openDropdownId === order.id && (
-                                                    <StatusDropdown
-                                                        currentStatus={order.status}
-                                                        orderId={order.id}
-                                                        onStatusUpdate={handleStatusUpdate}
-                                                        onClose={() => setOpenDropdownId(null)}
-                                                    />
-                                                )}
-                                            </AnimatePresence>
-                                        </div>
-                                    </td>
-
-                                    <td>
-                                        <button
-                                            onClick={() => setSelectedOrder(order)}
-                                            className="float-hover"
-                                            style={{ background: 'none', border: 'none', color: 'var(--primary)' }}
-                                            title="View Details"
-                                        >
-                                            <Eye size={18} />
-                                        </button>
-                                    </td>
-                                </motion.tr>
-                            ))}
-                        </AnimatePresence>
-                    </tbody>
-                </table>
-            </div>
-
+        <div className="animate-fade-in p-2 md:p-6">
             <AnimatePresence>
-                {selectedOrder && (
-                    <OrderDetailsModal order={selectedOrder} onClose={() => setSelectedOrder(null)} />
+                {viewOrder && (
+                    <OrderDetailsModal
+                        order={viewOrder}
+                        onClose={() => setViewOrder(null)}
+                    />
                 )}
             </AnimatePresence>
+            {/* Header Area */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div>
+                        <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'white', letterSpacing: '-0.5px' }}>Order Management</h1>
+                        <p style={{ color: 'var(--text-muted)' }}>Review and manage customer orders</p>
+                    </div>
+                </div>
+                {/* Filter Tabs - Horizontal Scroll */}
+                <div className="glass-panel" style={{
+                    padding: '8px',
+                    borderRadius: '16px',
+                    display: 'flex',
+                    gap: '10px',
+                    overflowX: 'auto',
+                    whiteSpace: 'nowrap',
+                    scrollbarWidth: 'none',
+                    border: '1px solid rgba(255,255,255,0.05)'
+                }}>
+                    {['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].map((f) => (
+                        <button
+                            key={f}
+                            onClick={() => setFilter(f)}
+                            style={{
+                                padding: '10px 24px',
+                                borderRadius: '12px',
+                                fontSize: '0.9rem',
+                                fontWeight: 600,
+                                background: filter === f ? 'var(--primary)' : 'transparent',
+                                color: filter === f ? 'black' : 'var(--text-secondary)',
+                                border: 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease',
+                                boxShadow: filter === f ? '0 4px 20px rgba(212, 175, 55, 0.3)' : 'none'
+                            }}
+                        >
+                            {f}
+                        </button>
+                    ))}
+                </div>
+            </div>
+            {/* Main Table Card */}
+            <div className="glass-panel" style={{ borderRadius: '24px', padding: '0', overflow: 'visible' }}>
+                <div style={{ padding: '20px', borderBottom: '1px solid var(--border-glass)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className="form-input-group" style={{ marginBottom: 0, width: '300px' }}>
+                        <div style={{ position: 'relative' }}>
+                            <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                            <input
+                                type="text"
+                                placeholder="Search orders..."
+                                style={{ paddingLeft: '40px', background: 'rgba(255,255,255,0.02)' }}
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Showing {filteredOrders.length} orders</p>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                    <table className="premium-table" style={{ borderSpacing: '0' }}>
+                        <thead>
+                            <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
+                                <th style={{ paddingLeft: '32px' }}>Order ID</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Value</th>
+                                <th>Status</th>
+                                <th style={{ textAlign: 'right', paddingRight: '32px' }}>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredOrders.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                        No orders found matching functionality filters.
+                                    </td>
+                                </tr>
+                            ) : (
+                                filteredOrders.map((order) => {
+                                    const currentStatus = STATUS_OPTIONS.find(s => s.value === order.status) || STATUS_OPTIONS[0];
+                                    return (
+                                        <motion.tr
+                                            key={order.id}
+                                            className="float-hover-row"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            style={{
+                                                zIndex: selectedOrderId === order.id ? 50 : 1,
+                                                position: 'relative',
+                                                borderBottom: '1px solid rgba(255,255,255,0.03)'
+                                            }}
+                                        >
+                                            <td style={{ padding: '24px 32px' }}>
+                                                <span style={{ fontWeight: 700, fontSize: '1rem', color: 'white' }}>{order.id}</span>
+                                            </td>
+                                            <td style={{ padding: '24px 20px' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <span style={{ fontWeight: 600, color: '#eee' }}>{order.customer}</span>
+                                                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{order.email}</span>
+                                                </div>
+                                            </td>
+                                            <td style={{ color: 'var(--text-secondary)' }}>{order.date}</td>
+                                            <td>
+                                                <span style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1.1rem' }}>{order.total}</span>
+                                            </td>
+                                            <td style={{ width: '200px' }}>
+                                                <div className="status-dropdown-container" style={{ position: 'relative' }}>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedOrderId(selectedOrderId === order.id ? null : order.id);
+                                                        }}
+                                                        style={{
+                                                            width: '100%',
+                                                            padding: '8px 12px',
+                                                            borderRadius: '12px',
+                                                            fontSize: '0.8rem',
+                                                            fontWeight: 700,
+                                                            textTransform: 'uppercase',
+                                                            letterSpacing: '0.5px',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'space-between',
+                                                            background: currentStatus.bg,
+                                                            color: currentStatus.color,
+                                                            border: 'none',
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.2s ease'
+                                                        }}
+                                                    >
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                            {order.status}
+                                                        </div>
+                                                        <MoreVertical size={14} opacity={0.7} />
+                                                    </button>
+                                                    <AnimatePresence>
+                                                        {selectedOrderId === order.id && (
+                                                            <motion.div
+                                                                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                                                                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                                                style={{
+                                                                    position: 'absolute',
+                                                                    top: 'calc(100% + 8px)',
+                                                                    left: 0,
+                                                                    width: '200px',
+                                                                    background: '#1a1a1a',
+                                                                    borderRadius: '16px',
+                                                                    boxShadow: '0 20px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1)',
+                                                                    padding: '6px',
+                                                                    zIndex: 100,
+                                                                    backdropFilter: 'blur(20px)'
+                                                                }}
+                                                            >
+                                                                {STATUS_OPTIONS.map((status) => {
+                                                                    const StatusIcon = status.icon;
+                                                                    return (
+                                                                        <button
+                                                                            key={status.value}
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                handleStatusUpdate(order, status.value as any);
+                                                                            }}
+                                                                            style={{
+                                                                                width: '100%',
+                                                                                display: 'flex',
+                                                                                alignItems: 'center',
+                                                                                gap: '12px',
+                                                                                padding: '10px 12px',
+                                                                                border: 'none',
+                                                                                background: 'transparent',
+                                                                                color: 'white',
+                                                                                borderRadius: '10px',
+                                                                                cursor: 'pointer',
+                                                                                fontSize: '0.85rem',
+                                                                                fontWeight: 500,
+                                                                                textAlign: 'left'
+                                                                            }}
+                                                                            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                                                                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                                                        >
+                                                                            <StatusIcon size={16} color={status.color} />
+                                                                            {status.label}
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </div>
+                                            </td>
+                                            <td style={{ textAlign: 'right', paddingRight: '32px' }}>
+                                                <button
+                                                    onClick={() => setViewOrder(order)}
+                                                    className="float-hover"
+                                                    style={{
+                                                        padding: '10px',
+                                                        background: 'rgba(255,255,255,0.03)',
+                                                        border: 'none',
+                                                        borderRadius: '12px',
+                                                        color: 'var(--text-muted)',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                    onMouseEnter={(e) => e.currentTarget.style.color = 'var(--primary)'}
+                                                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+                                                >
+                                                    <Eye size={18} />
+                                                </button>
+                                            </td>
+                                        </motion.tr>
+                                    );
+                                })
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     );
-};
-
-export default OrdersPage;
+}

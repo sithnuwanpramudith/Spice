@@ -6,6 +6,7 @@ interface OrderContextType {
     orders: Order[];
     loading: boolean;
     updateOrderStatus: (id: string, newStatus: Order['status']) => Promise<void>;
+    addOrder: (order: Order) => Promise<void>;
     refreshOrders: () => Promise<void>;
 }
 
@@ -31,6 +32,15 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         refreshOrders();
     }, []);
 
+    const addOrder = async (order: Order) => {
+        try {
+            const newOrder = await orderService.addOrder(order);
+            setOrders(prev => [newOrder, ...prev]);
+        } catch (error) {
+            console.error('Failed to add order:', error);
+        }
+    };
+
     const updateOrderStatus = async (id: string, newStatus: Order['status']) => {
         try {
             const success = await orderService.updateOrderStatus(id, newStatus);
@@ -45,7 +55,7 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     };
 
     return (
-        <OrderContext.Provider value={{ orders, loading, updateOrderStatus, refreshOrders }}>
+        <OrderContext.Provider value={{ orders, loading, updateOrderStatus, addOrder, refreshOrders }}>
             {children}
         </OrderContext.Provider>
     );
