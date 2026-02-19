@@ -13,14 +13,14 @@ const DeleteModal: React.FC<DeleteModalProps> = ({ isOpen, onClose, onConfirm, i
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="modal-overlay" onClick={onClose}>
+                <div className="modal-overlay">
                     <motion.div
                         className="glass-panel modal-content"
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
                         onClick={e => e.stopPropagation()}
-                        style={{ width: '100%', maxWidth: '400px', padding: '40px', borderRadius: '32px', position: 'relative', textAlign: 'center' }}
+                        style={{ width: '100%', maxWidth: '400px', padding: '40px', borderRadius: '32px', position: 'relative', textAlign: 'center', margin: 'auto' }}
                     >
                         <div style={{
                             width: '60px',

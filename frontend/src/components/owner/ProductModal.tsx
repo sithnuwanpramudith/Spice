@@ -78,14 +78,14 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onSubmit, 
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="modal-overlay" onClick={onClose}>
+                <div className="modal-overlay">
                     <motion.div
                         className="glass-panel modal-content"
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
                         onClick={e => e.stopPropagation()}
-                        style={{ width: '100%', maxWidth: '500px', padding: '40px', borderRadius: '32px', position: 'relative' }}
+                        style={{ width: '100%', maxWidth: '500px', padding: '40px', borderRadius: '32px', position: 'relative', margin: 'auto' }}
                     >
                         <button className="close-btn" onClick={onClose} style={{ position: 'absolute', top: '25px', right: '25px', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                             <X size={24} />

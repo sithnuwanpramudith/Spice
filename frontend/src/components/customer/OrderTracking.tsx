@@ -1,200 +1,236 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Package, Truck, CheckCircle, Clock, MapPin, ArrowRight } from 'lucide-react';
+import { Search, Package, Truck, CheckCircle, Clock, ArrowLeft } from 'lucide-react';
+import { useOrders } from '../../context/OrderContext';
+import { useAuth } from '../../context/AuthContext';
+import type { Order } from '../../services/orderService';
+import OrderCard from './OrderCard';
+import '../../styles/pages/dashboard.css';
 
 const OrderTracking: React.FC = () => {
-    const [orderId, setOrderId] = useState('');
-    const [isSearching, setIsSearching] = useState(false);
-    const [trackingData, setTrackingData] = useState<any>(null);
+    const { orders } = useOrders();
+    const { user } = useAuth();
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-    const handleTrack = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!orderId.trim()) return;
+    // Filter orders by logged-in user email and search term, memoized for performance
+    const filteredOrders = useMemo(() => {
+        if (!user) return [];
 
-        setIsSearching(true);
-        // Simulate API call
-        setTimeout(() => {
-            setTrackingData({
-                id: orderId.toUpperCase(),
-                status: 'In Transit',
-                estimatedDelivery: 'January 15, 2026',
-                currentLocation: 'Colombo Distribution Center',
-                steps: [
-                    { status: 'Order Placed', time: 'Jan 10, 2026 10:00 AM', completed: true },
-                    { status: 'Processing', time: 'Jan 10, 2026 02:30 PM', completed: true },
-                    { status: 'Shipped', time: 'Jan 11, 2026 09:15 AM', completed: true },
-                    { status: 'In Transit', time: 'Jan 12, 2026 08:00 AM', completed: false, active: true },
-                    { status: 'Out for Delivery', time: 'Expected Jan 15', completed: false },
-                    { status: 'Delivered', time: 'Expected Jan 15', completed: false },
-                ]
-            });
-            setIsSearching(false);
-        }, 1500);
+        return orders.filter(order =>
+            // Case-insensitive email match to associate order with user
+            order.email.toLowerCase() === user.email.toLowerCase() &&
+            // Search filter
+            (order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                order.status.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+    }, [orders, user, searchTerm]);
+
+    // Helper to determine step status
+    const getStepStatus = (stepName: string, currentStatus: string) => {
+        const stages = ['Pending', 'Processing', 'Shipped', 'Delivered'];
+        const currentIndex = stages.indexOf(currentStatus);
+        const stepIndex = stages.indexOf(stepName);
+
+        if (currentIndex > stepIndex) return 'completed';
+        if (currentIndex === stepIndex) return 'active';
+        return 'pending';
     };
 
-    return (
-        <div style={{ maxWidth: '800px', margin: '40px auto', padding: '0 20px' }}>
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                style={{ textAlign: 'center', marginBottom: '60px' }}
-            >
-                <h2 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '20px', color: 'var(--primary)' }}>Track Your Journey</h2>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', maxWidth: '600px', margin: '0 auto' }}>
-                    Enter your order ID below to see the current status of your premium spices as they make their way to you.
-                </p>
-            </motion.div>
+    const steps = ['Pending', 'Processing', 'Shipped', 'Delivered'];
 
-            <form onSubmit={handleTrack} style={{ marginBottom: '60px' }}>
-                <div style={{
-                    display: 'flex',
-                    gap: '15px',
-                    background: 'var(--bg-card)',
-                    padding: '10px',
-                    borderRadius: '20px',
-                    border: '1px solid var(--border-glass)',
-                    boxShadow: 'var(--glow-soft)'
-                }}>
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', padding: '0 20px', gap: '15px' }}>
-                        <Search size={24} color="var(--primary)" />
-                        <input
-                            type="text"
-                            placeholder="Enter Order ID (e.g., ORD-12345)"
-                            value={orderId}
-                            onChange={(e) => setOrderId(e.target.value)}
-                            style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color: 'white',
-                                fontSize: '1.1rem',
-                                width: '100%',
-                                outline: 'none',
-                                height: '50px'
-                            }}
-                        />
-                    </div>
-                    <button
-                        type="submit"
-                        className="btn-primary"
-                        disabled={isSearching}
-                        style={{
-                            padding: '0 40px',
-                            height: '60px',
-                            borderRadius: '15px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            fontSize: '1.1rem'
-                        }}
-                    >
-                        {isSearching ? 'Searching...' : 'Track Now'}
-                        {!isSearching && <ArrowRight size={20} />}
-                    </button>
+    // Render List View
+    const renderOrderList = () => (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 20px' }}
+        >
+            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+                <h2 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '15px', color: 'white' }}>My Orders</h2>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>Track the status of your recent purchases</p>
+            </div>
+
+            {/* Search Bar */}
+            <div style={{
+                marginBottom: '40px',
+                background: 'rgba(255,255,255,0.05)',
+                padding: '12px 24px',
+                borderRadius: '50px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '15px',
+                border: '1px solid rgba(255,255,255,0.1)',
+                maxWidth: '600px',
+                margin: '0 auto 40px auto'
+            }}>
+                <Search size={20} color="var(--text-muted)" />
+                <input
+                    type="text"
+                    placeholder="Search your orders..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'white',
+                        fontSize: '1rem',
+                        width: '100%',
+                        outline: 'none'
+                    }}
+                />
+            </div>
+
+            {/* Orders Grid */}
+            {filteredOrders.length === 0 ? (
+                <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.02)', borderRadius: '24px' }}>
+                    <p style={{ fontSize: '1.1rem' }}>No orders found for your account.</p>
                 </div>
-            </form>
+            ) : (
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                    gap: '25px',
+                    paddingBottom: '40px'
+                }}>
+                    {filteredOrders.map(order => (
+                        <OrderCard
+                            key={order.id}
+                            order={order}
+                            onClick={setSelectedOrder}
+                        />
+                    ))}
+                </div>
+            )}
+        </motion.div>
+    );
 
-            <AnimatePresence mode="wait">
-                {trackingData && (
-                    <motion.div
-                        key="results"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="glass-panel"
-                        style={{
-                            borderRadius: 'var(--radius-lg)',
-                            padding: '40px',
-                            border: '1px solid var(--border-glass)'
-                        }}
-                    >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px', flexWrap: 'wrap', gap: '20px' }}>
-                            <div>
-                                <h3 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '5px' }}>Order {trackingData.id}</h3>
-                                <p style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '1.1rem' }}>{trackingData.status}</p>
-                            </div>
-                            <div style={{ textAlign: 'right' }}>
-                                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '5px' }}>Estimated Delivery</p>
-                                <p style={{ fontWeight: 700, fontSize: '1.1rem' }}>{trackingData.estimatedDelivery}</p>
-                            </div>
+    // Render Detail View
+    const renderOrderDetail = () => {
+        if (!selectedOrder) return null;
+
+        return (
+            <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                style={{ maxWidth: '800px', margin: '0 auto', padding: '0 20px' }}
+            >
+                <button
+                    onClick={() => setSelectedOrder(null)}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--text-muted)',
+                        marginBottom: '30px',
+                        cursor: 'pointer',
+                        fontSize: '1rem'
+                    }}
+                    className="float-hover"
+                >
+                    <ArrowLeft size={20} /> Back to Orders
+                </button>
+
+                <div className="glass-panel" style={{ padding: '40px', borderRadius: '24px' }}>
+                    <div style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '30px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
+                        <div>
+                            <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '5px', color: 'white' }}>{selectedOrder.id}</h2>
+                            <p style={{ color: 'var(--text-muted)' }}>Placed on {selectedOrder.date}</p>
                         </div>
-
-                        <div style={{ display: 'flex', gap: '20px', marginBottom: '40px', background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '12px' }}>
-                            <MapPin size={24} color="var(--primary)" />
-                            <div>
-                                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Current Location</p>
-                                <p style={{ fontWeight: 600 }}>{trackingData.currentLocation}</p>
-                            </div>
+                        <div style={{ textAlign: 'right' }}>
+                            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Total Amount</p>
+                            <p style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)' }}>{selectedOrder.total}</p>
                         </div>
+                    </div>
 
-                        {/* Timeline */}
-                        <div style={{ position: 'relative' }}>
-                            <div style={{
-                                position: 'absolute',
-                                left: '20px',
-                                top: '0',
-                                bottom: '0',
-                                width: '2px',
-                                background: 'rgba(255,255,255,0.1)'
-                            }} />
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                                {trackingData.steps.map((step: any, index: number) => (
-                                    <div key={index} style={{ display: 'flex', gap: '30px', alignItems: 'flex-start', position: 'relative' }}>
-                                        <div style={{
-                                            width: '42px',
-                                            height: '42px',
-                                            borderRadius: '50%',
-                                            background: step.completed ? 'var(--primary)' : step.active ? 'var(--bg-dark)' : 'rgba(255,255,255,0.05)',
-                                            border: step.active ? '2px solid var(--primary)' : 'none',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            zIndex: 1,
-                                            boxShadow: step.active ? '0 0 15px var(--primary-glow)' : 'none'
-                                        }}>
-                                            {step.completed ? (
-                                                <CheckCircle size={24} color="var(--bg-darker)" />
-                                            ) : step.active ? (
-                                                <Truck size={20} color="var(--primary)" />
-                                            ) : (
-                                                <Clock size={20} color="var(--text-muted)" />
-                                            )}
-                                        </div>
-                                        <div>
-                                            <p style={{
-                                                fontWeight: 700,
-                                                fontSize: '1.1rem',
-                                                color: step.completed || step.active ? 'white' : 'var(--text-muted)'
-                                            }}>{step.status}</p>
-                                            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{step.time}</p>
-                                        </div>
-                                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '40px' }}>
+                        <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '16px' }}>
+                            <h4 style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px' }}>Shipping To</h4>
+                            <p style={{ fontWeight: 600, color: 'white' }}>{selectedOrder.customer}</p>
+                            <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{selectedOrder.address}</p>
+                        </div>
+                        <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '16px' }}>
+                            <h4 style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px' }}>Items</h4>
+                            <p style={{ fontWeight: 600, color: 'white' }}>{selectedOrder.items.length} Items</p>
+                            <div style={{ marginTop: '5px' }}>
+                                {selectedOrder.items.map(item => (
+                                    <p key={item.id} style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                                        {item.quantity}x {item.name}
+                                    </p>
                                 ))}
                             </div>
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    </div>
 
-            {!trackingData && !isSearching && (
-                <div style={{ marginTop: '40px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '30px' }}>
-                    <div className="glass-card" style={{ padding: '30px', borderRadius: 'var(--radius-lg)', textAlign: 'center' }}>
-                        <Package size={32} color="var(--primary)" style={{ marginBottom: '15px' }} />
-                        <h4 style={{ marginBottom: '10px' }}>Securely Packed</h4>
-                        <p style={{ fontSize: '0.9rem' }}>Eco-friendly premium packaging.</p>
-                    </div>
-                    <div className="glass-card" style={{ padding: '30px', borderRadius: 'var(--radius-lg)', textAlign: 'center' }}>
-                        <Truck size={32} color="var(--primary)" style={{ marginBottom: '15px' }} />
-                        <h4 style={{ marginBottom: '10px' }}>Global Shipping</h4>
-                        <p style={{ fontSize: '0.9rem' }}>Tracked delivery worldwide.</p>
-                    </div>
-                    <div className="glass-card" style={{ padding: '30px', borderRadius: 'var(--radius-lg)', textAlign: 'center' }}>
-                        <CheckCircle size={32} color="var(--primary)" style={{ marginBottom: '15px' }} />
-                        <h4 style={{ marginBottom: '10px' }}>Quality Guaranteed</h4>
-                        <p style={{ fontSize: '0.9rem' }}>100% authentic spices.</p>
+                    {/* Timeline */}
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '30px', color: 'white' }}>Order Status</h3>
+                    <div style={{ position: 'relative', paddingLeft: '20px' }}>
+                        <div style={{
+                            position: 'absolute',
+                            left: '39px',
+                            top: '20px',
+                            bottom: '20px',
+                            width: '2px',
+                            background: 'rgba(255,255,255,0.1)'
+                        }} />
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+                            {steps.map((step) => {
+                                const status = getStepStatus(step, selectedOrder.status);
+                                const isCompleted = status === 'completed';
+                                const isActive = status === 'active';
+                                const isPending = status === 'pending';
+
+                                let Icon = Clock;
+                                if (step === 'Pending') Icon = Package;
+                                if (step === 'Processing') Icon = Package;
+                                if (step === 'Shipped') Icon = Truck;
+                                if (step === 'Delivered') Icon = CheckCircle;
+
+                                return (
+                                    <div key={step} style={{ display: 'flex', gap: '25px', alignItems: 'center', position: 'relative', opacity: isPending ? 0.5 : 1 }}>
+                                        <div style={{
+                                            minWidth: '40px',
+                                            height: '40px',
+                                            borderRadius: '50%',
+                                            background: isCompleted ? 'var(--primary)' : isActive ? 'var(--bg-dark)' : 'var(--bg-card)',
+                                            border: isActive ? '2px solid var(--primary)' : '2px solid rgba(255,255,255,0.1)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            zIndex: 2,
+                                            boxShadow: isActive ? '0 0 20px var(--primary-glow)' : 'none'
+                                        }}>
+                                            <Icon size={18} color={isCompleted ? 'black' : isActive ? 'var(--primary)' : 'white'} />
+                                        </div>
+                                        <div>
+                                            <h4 style={{
+                                                fontSize: '1.1rem',
+                                                fontWeight: isActive ? 700 : 600,
+                                                color: isActive ? 'var(--primary)' : 'white'
+                                            }}>{step}</h4>
+                                            {isActive && <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '4px' }}>Current Status</p>}
+                                            {isCompleted && <p style={{ fontSize: '0.85rem', color: 'var(--primary)', marginTop: '4px' }}>Completed</p>}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
-            )}
+            </motion.div>
+        );
+    };
+
+    return (
+        <div style={{ maxWidth: '1200px', margin: '40px auto', minHeight: '600px' }}>
+            <AnimatePresence mode="wait">
+                {selectedOrder ? renderOrderDetail() : renderOrderList()}
+            </AnimatePresence>
         </div>
     );
 };

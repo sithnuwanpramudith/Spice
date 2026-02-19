@@ -9,6 +9,7 @@ export interface Order {
     id: string;
     customer: string;
     email: string;
+    whatsapp?: string;
     address: string;
     date: string;
     total: string;
@@ -17,11 +18,15 @@ export interface Order {
     timestamp: number;
 }
 
-const mockOrders: Order[] = [
+const STORAGE_KEY = 'spices_orders';
+
+// Initial mock data
+const initialMockOrders: Order[] = [
     {
         id: 'ORD-8824',
         customer: 'Amara Perera',
         email: 'amara@example.com',
+        whatsapp: '+94771234567',
         address: 'No 45, Galle Road, Colombo',
         date: 'Jan 12, 2026',
         total: '$124.50',
@@ -36,6 +41,7 @@ const mockOrders: Order[] = [
         id: 'ORD-8823',
         customer: 'Kasun Silva',
         email: 'kasun@example.com',
+        whatsapp: '+94719876543',
         address: '12/1, Kandy Road, Kegalle',
         date: 'Jan 12, 2026',
         total: '$45.00',
@@ -63,6 +69,7 @@ const mockOrders: Order[] = [
         id: 'ORD-8821',
         customer: 'Pathum Nissanka',
         email: 'pathum@example.com',
+        whatsapp: '+94765551234',
         address: '45/A, Stadium View, Matara',
         date: 'Jan 11, 2026',
         total: '$210.00',
@@ -74,19 +81,48 @@ const mockOrders: Order[] = [
     }
 ];
 
+// Helper to get orders from storage
+const getStoredOrders = (): Order[] => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+        return JSON.parse(stored);
+    }
+    // Initialize with mock data if empty
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(initialMockOrders));
+    return initialMockOrders;
+};
+
 export const orderService = {
     getOrders: async (): Promise<Order[]> => {
-        // Simulate API call
         return new Promise((resolve) => {
-            setTimeout(() => resolve(mockOrders), 500);
+            const orders = getStoredOrders();
+            // Sort by timestamp newly added first
+            orders.sort((a, b) => b.timestamp - a.timestamp);
+            setTimeout(() => resolve(orders), 500);
+        });
+    },
+
+    addOrder: async (order: Order): Promise<Order> => {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                const currentOrders = getStoredOrders();
+                const newOrders = [order, ...currentOrders];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(newOrders));
+                console.log('Order saved to localStorage:', order);
+                resolve(order);
+            }, 500);
         });
     },
 
     updateOrderStatus: async (id: string, status: Order['status']): Promise<boolean> => {
-        // Simulate API call
-        console.log(`Updating order ${id} to ${status}`);
         return new Promise((resolve) => {
-            setTimeout(() => resolve(true), 500);
+            setTimeout(() => {
+                const currentOrders = getStoredOrders();
+                const updatedOrders = currentOrders.map(o => o.id === id ? { ...o, status } : o);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedOrders));
+                console.log(`Order ${id} updated to ${status} in localStorage`);
+                resolve(true);
+            }, 500);
         });
     }
 };

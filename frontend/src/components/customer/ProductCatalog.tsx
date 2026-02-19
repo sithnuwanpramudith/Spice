@@ -1,105 +1,117 @@
-import { useState } from 'react';
-import { MOCK_PRODUCTS, SPICE_CATEGORIES } from '../../utils/constants';
-import ProductCard from './ProductCard';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Search } from 'lucide-react';
+import React from 'react';
+// Product Catalog Component
+import { useProducts } from '../../context/ProductContext';
+import { useCart } from '../../context/CartContext';
+import { motion } from 'framer-motion';
+import { Plus } from 'lucide-react';
 
-const ProductCatalog = () => {
-    const [selectedCategory, setSelectedCategory] = useState('All');
-    const [searchQuery, setSearchQuery] = useState('');
+const getPlaceholderImage = (category: string) => {
+    switch (category.toLowerCase()) {
+        case 'whole spice':
+            return 'https://images.unsplash.com/photo-1596560548464-f010549b84d7?q=80&w=2070&auto=format&fit=crop'; // Whole spices mix
+        case 'ground spice':
+            return 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=2070&auto=format&fit=crop'; // Ground spices mix
+        case 'curry powder':
+            return 'https://images.unsplash.com/photo-1589113155353-833446702e07?q=80&w=1974&auto=format&fit=crop'; // Curry powder
+        default:
+            return 'https://images.unsplash.com/photo-1532336414038-cf0c244b7f14?q=80&w=2076&auto=format&fit=crop';
+    }
+};
 
-    const filteredProducts = MOCK_PRODUCTS.filter(product => {
-        const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
-        const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesCategory && matchesSearch;
-    });
+const ProductCatalog: React.FC = () => {
+    const { products, loading } = useProducts();
+    const { addToCart } = useCart();
+
+    if (loading) {
+        return <div style={{ padding: '40px', textAlign: 'center', color: 'white' }}>Loading spices...</div>;
+    }
+
+    if (!products || products.length === 0) {
+        return <div style={{ padding: '40px', textAlign: 'center', color: 'white' }}>No products available.</div>;
+    }
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
-            <div style={{ marginBottom: '40px' }}>
-                <h2 style={{ fontSize: '2.5rem', marginBottom: '20px', textAlign: 'center' }}>Explore Premium Spices</h2>
-
-                {/* Search and Filter Bar */}
-                <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '20px',
-                    alignItems: 'center',
-                    marginBottom: '30px'
-                }}>
-                    <div style={{ position: 'relative', width: '100%', maxWidth: '600px' }}>
-                        <Search size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                        <input
-                            type="text"
-                            placeholder="Search for spices..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '16px 16px 16px 50px',
-                                borderRadius: '50px',
-                                background: 'var(--bg-glass)',
-                                border: '1px solid var(--border-glass)',
-                                color: 'white',
-                                outline: 'none',
-                                fontSize: '1rem'
-                            }}
-                        />
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                        {SPICE_CATEGORIES.map(category => (
-                            <button
-                                key={category}
-                                onClick={() => setSelectedCategory(category)}
+        <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
+            <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '30px', color: 'white' }}>Our Collection</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '30px' }}>
+                {products.map((product) => (
+                    <motion.div
+                        key={product.id}
+                        className="glass-panel antigravity-hover"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        style={{
+                            padding: '20px',
+                            borderRadius: '20px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            height: '100%'
+                        }}
+                    >
+                        <div style={{
+                            height: '220px',
+                            background: 'rgba(255,255,255,0.02)',
+                            borderRadius: '16px',
+                            marginBottom: '20px',
+                            position: 'relative',
+                            overflow: 'hidden'
+                        }}>
+                            <img
+                                src={getPlaceholderImage(product.category)}
+                                alt={product.name}
                                 style={{
-                                    padding: '8px 20px',
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                    transition: 'transform 0.5s ease'
+                                }}
+                                className="product-image"
+                            />
+                            <div style={{
+                                position: 'absolute',
+                                inset: 0,
+                                background: 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.8))',
+                                pointerEvents: 'none'
+                            }} />
+                        </div>
+                        <div style={{ marginBottom: 'auto' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px' }}>
+                                <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'white' }}>{product.name}</h3>
+                                <span style={{
+                                    background: 'rgba(255,255,255,0.1)',
+                                    padding: '4px 8px',
+                                    borderRadius: '8px',
+                                    fontSize: '0.8rem',
+                                    color: 'white'
+                                }}>{product.category}</span>
+                            </div>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '15px' }}>
+                                {product.description}
+                            </p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
+                            <span style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--primary)' }}>
+                                ${product.price.toFixed(2)}
+                            </span>
+                            <button
+                                onClick={() => addToCart({ ...product, image: getPlaceholderImage(product.category) })}
+                                className="btn-primary"
+                                style={{
+                                    padding: '10px 20px',
                                     borderRadius: '50px',
-                                    border: '1px solid',
-                                    borderColor: selectedCategory === category ? 'var(--primary)' : 'var(--border-glass)',
-                                    background: selectedCategory === category ? 'var(--primary)' : 'transparent',
-                                    color: selectedCategory === category ? 'var(--bg-dark)' : 'var(--text-secondary)',
-                                    cursor: 'pointer',
-                                    fontWeight: 600,
-                                    transition: 'var(--transition-smooth)'
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    fontSize: '0.9rem'
                                 }}
                             >
-                                {category}
+                                <Plus size={16} /> Add
                             </button>
-                        ))}
-                    </div>
-                </div>
+                        </div>
+                    </motion.div>
+                ))}
             </div>
-
-            <motion.div
-                layout
-                style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                    gap: '30px'
-                }}
-            >
-                <AnimatePresence mode="popLayout">
-                    {filteredProducts.map(product => (
-                        <motion.div
-                            key={product.id}
-                            layout
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            transition={{ duration: 0.3 }}
-                        >
-                            <ProductCard product={product} />
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
-            </motion.div>
-
-            {filteredProducts.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '100px 0', color: 'var(--text-muted)' }}>
-                    <p>No spices found matching your criteria.</p>
-                </div>
-            )}
         </div>
     );
 };

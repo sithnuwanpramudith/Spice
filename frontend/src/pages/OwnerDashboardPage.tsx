@@ -6,9 +6,7 @@ import {
     ShoppingCart,
     TrendingUp,
     LogOut,
-    Settings,
-    MessageSquare,
-    PlusCircle
+    Settings
 } from 'lucide-react';
 import OwnerRoutes from '../routes/OwnerRoutes';
 import '../styles/pages/dashboard.css';
@@ -24,8 +22,6 @@ const OwnerDashboardPage = () => {
         { name: 'Products', icon: Package, path: '/owner/products' }, // Placeholder for products list if needed
         { name: 'Orders', icon: ShoppingCart, path: '/owner/orders' },
         { name: 'Reports', icon: TrendingUp, path: '/owner/reports' }, // Using TrendingUp for reports too
-        { name: 'Add Product', icon: PlusCircle, path: '/owner/add-product' },
-        { name: 'Contact Suppliers', icon: MessageSquare, path: '/owner/contact' },
         { name: 'Settings', icon: Settings, path: '/owner/settings' },
     ];
 
