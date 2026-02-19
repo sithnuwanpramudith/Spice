@@ -6,6 +6,7 @@ import { useProducts } from '../context/ProductContext';
 import SupplierAddItemForm from '../components/supplier/SupplierAddItemForm';
 import UnifiedLoginModal from '../components/auth/UnifiedLoginModal';
 import { useAuth } from '../context/AuthContext';
+import heroBanner from '../assets/images/hero-banner.png';
 
 const HomePage: React.FC = () => {
     const navigate = useNavigate();
@@ -32,7 +33,7 @@ const HomePage: React.FC = () => {
                 justifyContent: 'center',
                 position: 'relative',
                 overflow: 'hidden',
-                background: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('/src/assets/images/hero-banner.png')`,
+                background: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${heroBanner})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 boxShadow: 'inset 0 0 100px rgba(0,0,0,1)'
