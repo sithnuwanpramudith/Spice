@@ -9,8 +9,7 @@ const LoginForm = () => {
     const navigate = useNavigate();
     const [credentials, setCredentials] = useState<LoginCredentials>({
         email: '',
-        password: '',
-        role: 'customer'
+        password: ''
     });
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [loading, setLoading] = useState(false);
@@ -45,9 +44,9 @@ const LoginForm = () => {
 
         setLoading(true);
         try {
-            await login(credentials);
-            if (credentials.role === 'owner') navigate('/owner');
-            else navigate('/customer');
+            const user = await login(credentials);
+            if (user.role === 'owner') navigate('/admin-dashboard');
+            else navigate('/customer-dashboard');
         } catch (error) {
             setErrors({ general: 'Invalid credentials. Please try again.' });
             console.error('Login failed:', error);
