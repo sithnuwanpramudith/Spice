@@ -6,6 +6,8 @@ import { useCart } from '../../context/CartContext';
 import '../../styles/components/navbar.css';
 
 import logo from '../../assets/images/logo.png';
+import UnifiedLoginModal from '../auth/UnifiedLoginModal';
+import { useNavigate } from 'react-router-dom';
 
 interface NavbarProps {
     activeTab: 'shop' | 'track';
@@ -14,8 +16,10 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, setIsCartOpen }) => {
-    const { logout, user } = useAuth();
+    const { logout, user, isAuthenticated } = useAuth();
     const { cartCount } = useCart();
+    const [isLoginOpen, setIsLoginOpen] = React.useState(false);
+    const navigate = useNavigate();
 
     return (
         <header className="navbar">
@@ -74,19 +78,27 @@ const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, setIsCartOpen 
                 </div>
 
                 <div className="user-profile">
-                    <div className="user-info hide-on-mobile">
-                        <p>{user?.name || 'Guest'}</p>
-                        <p>Customer</p>
-                    </div>
-                    <button
-                        onClick={logout}
-                        className="logout-btn"
-                        title="Logout"
-                    >
-                        <LogOut size={18} />
-                    </button>
+                    {isAuthenticated ? (
+                        <>
+                            <div className="user-info hide-on-mobile" onClick={() => navigate(user?.role === 'owner' ? '/admin-dashboard' : '/customer-dashboard')} style={{ cursor: 'pointer' }}>
+                                <p>{user?.name || 'User'}</p>
+                                <p style={{ textTransform: 'capitalize' }}>{user?.role}</p>
+                            </div>
+                            <button
+                                onClick={logout}
+                                className="logout-btn"
+                                title="Logout"
+                            >
+                                <LogOut size={18} />
+                            </button>
+                        </>
+                    ) : (
+                        <button className="btn-primary" onClick={() => setIsLoginOpen(true)}>Login</button>
+                    )}
                 </div>
             </div>
+
+            <UnifiedLoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
         </header>
     );
 };

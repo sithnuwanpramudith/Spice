@@ -3,13 +3,18 @@ import React from 'react';
 import { useProducts } from '../../context/ProductContext';
 import { useCart } from '../../context/CartContext';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 const getPlaceholderImage = (category: string) => {
     switch (category.toLowerCase()) {
-        case 'whole spice': return 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=2070&auto=format&fit=crop';
-        case 'ground spice': return 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=2070&auto=format&fit=crop';
-        default: return 'https://images.unsplash.com/photo-1532336414038-cf0c244b7f14?q=80&w=2076&auto=format&fit=crop';
+        case 'whole spice':
+            return 'https://images.unsplash.com/photo-1596560548464-f010549b84d7?q=80&w=2070&auto=format&fit=crop'; // Whole spices mix
+        case 'ground spice':
+            return 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=2070&auto=format&fit=crop'; // Ground spices mix
+        case 'curry powder':
+            return 'https://images.unsplash.com/photo-1589113155353-833446702e07?q=80&w=1974&auto=format&fit=crop'; // Curry powder
+        default:
+            return 'https://images.unsplash.com/photo-1532336414038-cf0c244b7f14?q=80&w=2076&auto=format&fit=crop';
     }
 };
 
@@ -45,16 +50,30 @@ const ProductCatalog: React.FC = () => {
                         }}
                     >
                         <div style={{
-                            height: '200px',
-                            background: 'rgba(255,255,255,0.05)',
+                            height: '220px',
+                            background: 'rgba(255,255,255,0.02)',
                             borderRadius: '16px',
                             marginBottom: '20px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
+                            position: 'relative',
                             overflow: 'hidden'
                         }}>
-                            <ShoppingBag size={48} color="rgba(255,255,255,0.2)" />
+                            <img
+                                src={getPlaceholderImage(product.category)}
+                                alt={product.name}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                    transition: 'transform 0.5s ease'
+                                }}
+                                className="product-image"
+                            />
+                            <div style={{
+                                position: 'absolute',
+                                inset: 0,
+                                background: 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.8))',
+                                pointerEvents: 'none'
+                            }} />
                         </div>
                         <div style={{ marginBottom: 'auto' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px' }}>

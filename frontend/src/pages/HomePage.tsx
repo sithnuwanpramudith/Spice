@@ -4,12 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import { ShoppingBag, ArrowRight, Plus } from 'lucide-react';
 import { useProducts } from '../context/ProductContext';
 import SupplierAddItemForm from '../components/supplier/SupplierAddItemForm';
+import UnifiedLoginModal from '../components/auth/UnifiedLoginModal';
+import { useAuth } from '../context/AuthContext';
 
 const HomePage: React.FC = () => {
     const navigate = useNavigate();
     // const { user } = useAuth(); // Not strictly needed unless hiding sections
     const { products, refreshProducts } = useProducts();
+    const { isAuthenticated, logout, user } = useAuth();
     const [showSupplierModal, setShowSupplierModal] = useState(false);
+    const [showLoginModal, setShowLoginModal] = useState(false);
 
     useEffect(() => {
         refreshProducts();
@@ -22,14 +26,24 @@ const HomePage: React.FC = () => {
 
             {/* Hero Section */}
             <section style={{
-                minHeight: '80vh',
+                minHeight: '85vh',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 position: 'relative',
                 overflow: 'hidden',
-                background: 'radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.15), transparent 70%)'
+                background: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('/src/assets/images/hero-banner.png')`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                boxShadow: 'inset 0 0 100px rgba(0,0,0,1)'
             }}>
+                {/* Decorative gradients */}
+                <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.1), transparent 70%)',
+                    zIndex: 1
+                }}></div>
                 <div style={{ textAlign: 'center', zIndex: 10, padding: '20px' }}>
                     <motion.h1
                         initial={{ opacity: 0, y: 30 }}
@@ -40,6 +54,18 @@ const HomePage: React.FC = () => {
                         PREMIUM <span style={{ color: 'var(--primary)' }}>SPICES</span>
                         <br /> FOR YOUR KITCHEN
                     </motion.h1>
+
+                    <div style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', gap: '15px' }}>
+                        {isAuthenticated ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                <span style={{ color: 'var(--text-secondary)' }}>Welcome, {user?.name}</span>
+                                <button className="btn-secondary" onClick={() => navigate(user?.role === 'owner' ? '/admin-dashboard' : '/customer-dashboard')}>Dashboard</button>
+                                <button className="btn-icon" onClick={logout} title="Logout"><ArrowRight style={{ transform: 'rotate(180deg)' }} /></button>
+                            </div>
+                        ) : (
+                            <button className="btn-primary" onClick={() => setShowLoginModal(true)}>Login</button>
+                        )}
+                    </div>
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -57,17 +83,10 @@ const HomePage: React.FC = () => {
                     >
                         <button
                             className="btn-primary antigravity-hover"
-                            onClick={() => navigate('/login')}
+                            onClick={() => isAuthenticated ? navigate(user?.role === 'owner' ? '/admin-dashboard' : '/customer-dashboard') : setShowLoginModal(true)}
                             style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.1rem' }}
                         >
-                            Customer Login <ArrowRight size={20} />
-                        </button>
-                        <button
-                            className="btn-secondary antigravity-hover"
-                            onClick={() => navigate('/login')} // Assuming register flow is same as login or similar
-                            style={{ fontSize: '1.1rem' }}
-                        >
-                            Register Now
+                            {isAuthenticated ? 'Go to Dashboard' : 'Get Started'} <ArrowRight size={20} />
                         </button>
                     </motion.div>
                 </div>
@@ -79,31 +98,39 @@ const HomePage: React.FC = () => {
                     className="glass-panel antigravity-hover"
                     whileHover={{ scale: 1.01 }}
                     style={{
-                        padding: '40px',
-                        borderRadius: '24px',
+                        padding: '60px 40px',
+                        borderRadius: '32px',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         cursor: 'pointer',
-                        background: 'linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)'
+                        background: `linear-gradient(90deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 100%), url('https://images.unsplash.com/photo-1592323869138-1667b931853a?q=80&w=2070&auto=format&fit=crop')`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        position: 'relative',
+                        overflow: 'hidden'
                     }}
                     onClick={() => setShowSupplierModal(true)}
                 >
-                    <div>
-                        <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '10px' }}>Are you a Supplier?</h2>
-                        <p style={{ color: 'var(--text-secondary)' }}>Click here to add your item instantly.</p>
+                    <div style={{ position: 'relative', zIndex: 2 }}>
+                        <h2 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '10px', color: 'white' }}>Are you a Supplier?</h2>
+                        <p style={{ color: 'var(--primary)', fontSize: '1.1rem', fontWeight: 500 }}>Join our premium network. Add your items instantly.</p>
                     </div>
                     <div style={{
-                        width: '60px',
-                        height: '60px',
-                        borderRadius: '50%',
+                        width: '70px',
+                        height: '70px',
+                        borderRadius: '24px',
                         background: 'var(--primary)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        color: 'black'
+                        color: 'black',
+                        position: 'relative',
+                        zIndex: 2,
+                        boxShadow: '0 10px 30px rgba(212, 175, 55, 0.4)'
                     }}>
-                        <Plus size={30} />
+                        <Plus size={35} />
                     </div>
                 </motion.div>
             </section>
@@ -136,6 +163,11 @@ const HomePage: React.FC = () => {
                 )}
             </AnimatePresence>
 
+            <UnifiedLoginModal
+                isOpen={showLoginModal}
+                onClose={() => setShowLoginModal(false)}
+            />
+
             {/* Products Grid */}
             <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
                 <h2 style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '40px', textAlign: 'center' }}>Featured Collection</h2>
@@ -161,16 +193,22 @@ const HomePage: React.FC = () => {
                                 }}
                             >
                                 <div style={{
-                                    height: '200px',
-                                    background: 'rgba(255,255,255,0.05)',
+                                    height: '240px',
+                                    background: 'rgba(255,255,255,0.02)',
                                     borderRadius: '16px',
                                     marginBottom: '20px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
+                                    position: 'relative',
                                     overflow: 'hidden'
                                 }}>
-                                    <ShoppingBag size={48} color="rgba(255,255,255,0.2)" />
+                                    <img
+                                        src={product.category.toLowerCase().includes('whole')
+                                            ? 'https://images.unsplash.com/photo-1596560548464-f010549b84d7?q=80&w=2070&auto=format&fit=crop'
+                                            : 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=2070&auto=format&fit=crop'
+                                        }
+                                        alt={product.name}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
+                                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(transparent 70%, rgba(0,0,0,0.7))' }} />
                                 </div>
                                 <div style={{ marginBottom: 'auto' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px' }}>
