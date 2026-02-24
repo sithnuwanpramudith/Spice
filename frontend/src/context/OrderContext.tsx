@@ -34,8 +34,9 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     const addOrder = async (order: Order) => {
         try {
-            const newOrder = await orderService.addOrder(order);
-            setOrders(prev => [newOrder, ...prev]);
+            await orderService.addOrder(order);
+            // Prepend the full order object to the state instantly
+            setOrders(prev => [order, ...prev]);
         } catch (error) {
             console.error('Failed to add order:', error);
         }

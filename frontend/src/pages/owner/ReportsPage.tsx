@@ -4,7 +4,7 @@ import '../../styles/pages/dashboard.css';
 
 const ReportsPage: React.FC = () => {
     const stats = [
-        { title: 'Avg Order Value', value: '$84.20', icon: DollarSign, trend: '+5.4%' },
+        { title: 'Avg Order Value', value: 'LKR 8,420', icon: DollarSign, trend: '+5.4%' },
         { title: 'Conversion Rate', value: '3.2%', icon: TrendingUp, trend: '+0.8%' },
         { title: 'Best Seller', value: 'Cinnamon', icon: Award, trend: '420 kg' },
         { title: 'Active Days', value: '28/31', icon: Calendar, trend: '90%' },
@@ -39,7 +39,7 @@ const ReportsPage: React.FC = () => {
                         {[60, 45, 85, 65, 95, 80].map((h, i) => (
                             <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
                                 <div className="chart-bar" style={{ height: `${h}%`, width: '100%' }}>
-                                    <div style={{ position: 'absolute', top: '-30px', left: '50%', transform: 'translateX(-50%)', fontWeight: 700, color: 'var(--primary)' }}>${h}k</div>
+                                    <div style={{ position: 'absolute', top: '-30px', left: '50%', transform: 'translateX(-50%)', fontWeight: 700, color: 'var(--primary)' }}>LKR {h}k</div>
                                 </div>
                                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'][i]}</span>
                             </div>

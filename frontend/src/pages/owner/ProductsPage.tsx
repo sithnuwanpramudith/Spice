@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { Package, Plus, Search, Edit2, Trash2, AlertTriangle } from 'lucide-react';
 import { useProducts } from '../../context/ProductContext';
+import { useNavigate } from 'react-router-dom';
 import ProductModal from '../../components/owner/ProductModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import '../../styles/pages/dashboard.css';
 
 const ProductsPage: React.FC = () => {
-    const { products, loading, addProduct, updateProduct, deleteProduct } = useProducts();
+    const { products, loading, updateProduct, deleteProduct } = useProducts();
+    const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [filterCategory, setFilterCategory] = useState('All');
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [modalMode, setModalMode] = useState<'add' | 'edit' | 'stock'>('add');
+    const [modalMode, setModalMode] = useState<'stock'>('stock');
     const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
     const filteredProducts = products.filter(product => {
@@ -20,15 +22,11 @@ const ProductsPage: React.FC = () => {
     });
 
     const handleOpenAdd = () => {
-        setModalMode('add');
-        setSelectedProduct(null);
-        setIsModalOpen(true);
+        navigate('/admin-dashboard/add-product');
     };
 
     const handleOpenEdit = (product: any) => {
-        setModalMode('edit');
-        setSelectedProduct(product);
-        setIsModalOpen(true);
+        navigate(`/admin-dashboard/edit-product/${product.id}`);
     };
 
     const handleOpenStock = (e: React.MouseEvent, product: any) => {
@@ -45,11 +43,7 @@ const ProductsPage: React.FC = () => {
     };
 
     const handleModalSubmit = async (data: any) => {
-        if (modalMode === 'add') {
-            await addProduct(data);
-        } else {
-            await updateProduct(selectedProduct.id, data);
-        }
+        await updateProduct(selectedProduct.id, data);
         setIsModalOpen(false);
     };
 
@@ -100,8 +94,10 @@ const ProductsPage: React.FC = () => {
                             onChange={(e) => setFilterCategory(e.target.value)}
                         >
                             <option value="All">All Categories</option>
-                            <option value="Whole Spice">Whole Spice</option>
-                            <option value="Ground Spice">Ground Spice</option>
+                            <option value="Whole Spices">Whole Spices</option>
+                            <option value="Powdered Spices">Powdered Spices</option>
+                            <option value="Herbs">Herbs</option>
+                            <option value="Mixed Spices">Mixed Spices</option>
                             <option value="Organic Herb">Organic Herb</option>
                             <option value="Spice Blend">Spice Blend</option>
                         </select>
@@ -140,9 +136,14 @@ const ProductsPage: React.FC = () => {
                                                     borderRadius: '10px',
                                                     background: 'rgba(255,170,0,0.1)',
                                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    color: 'var(--primary)'
+                                                    color: 'var(--primary)',
+                                                    overflow: 'hidden'
                                                 }}>
-                                                    <Package size={22} />
+                                                    {product.image ? (
+                                                        <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                    ) : (
+                                                        <Package size={22} />
+                                                    )}
                                                 </div>
                                                 <div>
                                                     <div style={{ fontWeight: 600, color: '#fff', marginBottom: '3px' }}>{product.name}</div>

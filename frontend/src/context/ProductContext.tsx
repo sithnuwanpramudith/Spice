@@ -36,8 +36,11 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
         try {
             const newProduct = await productService.addProduct(data);
             setProducts(prev => [...prev, newProduct]);
+            // Refresh to ensure we have the latest state from server
+            await refreshProducts();
         } catch (error) {
             console.error('Failed to add product:', error);
+            throw error;
         }
     };
 

@@ -6,10 +6,12 @@ import type { User } from '../services/authService';
 export interface LoginCredentials {
     email: string;
     password?: string;
+    role?: 'owner' | 'customer';
 }
 
 interface AuthContextType {
     user: User | null;
+    loading: boolean;
     login: (credentials: LoginCredentials) => Promise<User>;
     logout: () => void;
     isAuthenticated: boolean;
@@ -19,12 +21,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const savedUser = authService.getCurrentUser();
         if (savedUser) {
             setUser(savedUser);
         }
+        setLoading(false);
     }, []);
 
     const login = async (credentials: LoginCredentials): Promise<User> => {
@@ -44,7 +48,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
+        <AuthContext.Provider value={{ user, loading, login, logout, isAuthenticated: !!user }}>
             {children}
         </AuthContext.Provider>
     );

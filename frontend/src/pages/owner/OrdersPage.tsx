@@ -128,7 +128,7 @@ const OrderDetailsModal: React.FC<{
                                     <td style={{ padding: '16px 12px' }}>{item.name}</td>
                                     <td style={{ padding: '16px 12px', textAlign: 'center' }}>x{item.quantity}</td>
                                     <td style={{ padding: '16px 12px', textAlign: 'right' }}>
-                                        ${(item.price * item.quantity).toFixed(2)}
+                                        LKR {(item.price * item.quantity).toLocaleString()}
                                     </td>
                                 </tr>
                             ))}
@@ -146,9 +146,13 @@ const OrderDetailsModal: React.FC<{
     );
 };
 export default function OrdersPage() {
-    const { orders, loading, updateOrderStatus } = useOrders();
+    const { orders, loading, refreshOrders, updateOrderStatus } = useOrders();
     const [filter, setFilter] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
+
+    useEffect(() => {
+        refreshOrders();
+    }, []);
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
     const [viewOrder, setViewOrder] = useState<Order | null>(null);
     // Status Config matching the requested flow: Pending -> Processing -> Shipped -> Delivered

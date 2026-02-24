@@ -5,17 +5,18 @@ import { useCart } from '../../context/CartContext';
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
 
-const getPlaceholderImage = (category: string) => {
-    switch (category.toLowerCase()) {
-        case 'whole spice':
-            return 'https://images.unsplash.com/photo-1596560548464-f010549b84d7?q=80&w=2070&auto=format&fit=crop'; // Whole spices mix
-        case 'ground spice':
-            return 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=2070&auto=format&fit=crop'; // Ground spices mix
-        case 'curry powder':
-            return 'https://images.unsplash.com/photo-1589113155353-833446702e07?q=80&w=1974&auto=format&fit=crop'; // Curry powder
-        default:
-            return 'https://images.unsplash.com/photo-1532336414038-cf0c244b7f14?q=80&w=2076&auto=format&fit=crop';
+const getPlaceholderImage = (category: string, name: string = '') => {
+    const combined = (category + ' ' + name).toLowerCase();
+    if (combined.includes('cinnamon') || combined.includes('whole')) {
+        return 'https://images.unsplash.com/photo-1596560548464-f010549b84d7?q=80&w=2070&auto=format&fit=crop';
     }
+    if (combined.includes('chili') || combined.includes('powder')) {
+        return 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=2070&auto=format&fit=crop';
+    }
+    if (combined.includes('pepper')) {
+        return 'https://images.unsplash.com/photo-1509358271058-acd22cc93898?q=80&w=2070&auto=format&fit=crop';
+    }
+    return 'https://images.unsplash.com/photo-1532336414038-cf0c244b7f14?q=80&w=2076&auto=format&fit=crop';
 };
 
 const ProductCatalog: React.FC = () => {
@@ -58,7 +59,7 @@ const ProductCatalog: React.FC = () => {
                             overflow: 'hidden'
                         }}>
                             <img
-                                src={getPlaceholderImage(product.category)}
+                                src={product.image || getPlaceholderImage(product.category, product.name)}
                                 alt={product.name}
                                 style={{
                                     width: '100%',
@@ -92,10 +93,10 @@ const ProductCatalog: React.FC = () => {
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
                             <span style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--primary)' }}>
-                                ${product.price.toFixed(2)}
+                                LKR {product.price.toLocaleString()}
                             </span>
                             <button
-                                onClick={() => addToCart({ ...product, image: getPlaceholderImage(product.category) })}
+                                onClick={() => addToCart({ ...product, image: product.image || getPlaceholderImage(product.category, product.name) })}
                                 className="btn-primary"
                                 style={{
                                     padding: '10px 20px',

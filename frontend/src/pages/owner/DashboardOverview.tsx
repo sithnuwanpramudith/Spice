@@ -1,28 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import StatCard from '../../components/owner/StatCard';
 import { TrendingUp, Users, Package, ShoppingCart } from 'lucide-react';
-import { useProducts } from '../../context/ProductContext';
-import ProductModal from '../../components/owner/ProductModal';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import '../../styles/pages/dashboard.css';
 
 const DashboardOverview: React.FC = () => {
     const navigate = useNavigate();
-    const { addProduct } = useProducts();
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [stats, setStats] = useState({
+        revenue: 0,
+        suppliers: 0,
+        products: 0,
+        pendingOrders: 0
+    });
+    const [loading, setLoading] = useState(true);
 
-    const handleModalSubmit = async (data: any) => {
-        await addProduct(data);
-        setIsModalOpen(false);
-    };
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const response = await axios.get('http://localhost:5000/api/dashboard/summary');
+                setStats(response.data);
+            } catch (error) {
+                console.error('Failed to fetch dashboard stats:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchStats();
+    }, []);
 
     const handleQuickAction = (action: any) => {
         if (action.name === 'Add Product') {
-            setIsModalOpen(true);
+            navigate('/admin-dashboard/add-product');
         } else {
             navigate(action.path);
         }
     };
+
+    if (loading) return <div style={{ padding: '40px', color: 'var(--text-muted)' }}>Loading Analytics...</div>;
 
     return (
         <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
@@ -37,10 +52,10 @@ const DashboardOverview: React.FC = () => {
                 gap: '30px',
                 marginBottom: '40px'
             }}>
-                <StatCard title="Total Revenue" value="$42,500" icon={TrendingUp} trend="+12.5%" />
-                <StatCard title="Active Suppliers" value="18" icon={Users} trend="+2 new" />
-                <StatCard title="Total Products" value="156" icon={Package} trend="+5 this week" />
-                <StatCard title="Pending Orders" value="24" icon={ShoppingCart} trend="-4.3%" isPositive={false} />
+                <StatCard title="Total Revenue" value={`LKR ${stats.revenue.toLocaleString()}`} icon={TrendingUp} trend="+12.5%" />
+                <StatCard title="Active Suppliers" value={stats.suppliers.toString()} icon={Users} trend="+2 new" />
+                <StatCard title="Total Products" value={stats.products.toString()} icon={Package} trend="+5 this week" />
+                <StatCard title="Pending Orders" value={stats.pendingOrders.toString()} icon={ShoppingCart} trend="-4.3%" isPositive={false} />
             </div>
 
             <div className="dashboard-grid" style={{ marginBottom: '40px' }}>
@@ -60,7 +75,7 @@ const DashboardOverview: React.FC = () => {
                     <div className="chart-container">
                         {[40, 65, 45, 90, 75, 55, 80, 45, 70, 85, 60, 95].map((h, i) => (
                             <div key={i} className="chart-bar" style={{ height: `${h}%` }}>
-                                <div style={{ position: 'absolute', top: '-25px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.7rem', color: 'var(--primary)', opacity: 0.8 }}>{h}k</div>
+                                <div style={{ position: 'absolute', top: '-25px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.7rem', color: 'var(--primary)', opacity: 0.8 }}>LKR {h}k</div>
                             </div>
                         ))}
                     </div>
@@ -71,9 +86,9 @@ const DashboardOverview: React.FC = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                         {[
                             { name: 'Add Product', icon: Package, path: '#', color: 'var(--primary)' },
-                            { name: 'Supplier List', icon: Users, path: '/owner/suppliers', color: '#4ade80' },
-                            { name: 'Reports', icon: TrendingUp, path: '/owner/reports', color: '#60a5fa' },
-                            { name: 'New Order', icon: ShoppingCart, path: '/owner/orders', color: '#f87171' }
+                            { name: 'Supplier List', icon: Users, path: '/admin-dashboard/suppliers', color: '#4ade80' },
+                            { name: 'Reports', icon: TrendingUp, path: '/admin-dashboard/reports', color: '#60a5fa' },
+                            { name: 'New Order', icon: ShoppingCart, path: '/admin-dashboard/orders', color: '#f87171' }
                         ].map(action => (
                             <button
                                 key={action.name}
@@ -97,13 +112,6 @@ const DashboardOverview: React.FC = () => {
                     </div>
                 </div>
             </div>
-
-            <ProductModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSubmit={handleModalSubmit}
-                mode="add"
-            />
 
             <style>{`
                 @keyframes fadeIn {

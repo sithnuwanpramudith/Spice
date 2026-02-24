@@ -17,11 +17,13 @@ const SupplierAddItemForm: React.FC<SupplierAddItemFormProps> = ({ onClose, onSu
         description: ''
     });
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         try {
+            setError(null);
             await productService.addProduct({
                 name: formData.name,
                 category: formData.category,
@@ -31,8 +33,9 @@ const SupplierAddItemForm: React.FC<SupplierAddItemFormProps> = ({ onClose, onSu
             });
             onSuccess();
             onClose();
-        } catch (error) {
-            console.error(error);
+        } catch (err: any) {
+            console.error(err);
+            setError(err.response?.data?.error || 'Failed to add product. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -139,6 +142,8 @@ const SupplierAddItemForm: React.FC<SupplierAddItemFormProps> = ({ onClose, onSu
                         style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', outline: 'none', resize: 'none' }}
                     />
                 </div>
+
+                {error && <p style={{ color: '#ef4444', fontSize: '0.85rem', textAlign: 'center' }}>{error}</p>}
 
                 <button
                     type="submit"

@@ -9,7 +9,8 @@ const LoginForm = () => {
     const navigate = useNavigate();
     const [credentials, setCredentials] = useState<LoginCredentials>({
         email: '',
-        password: ''
+        password: '',
+        role: 'customer'
     });
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [loading, setLoading] = useState(false);
