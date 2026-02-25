@@ -1,3 +1,7 @@
+import axios from 'axios';
+
+const API_URL = 'http://localhost:5000/api';
+
 export interface User {
     id: string;
     name: string;
@@ -12,33 +16,13 @@ export interface LoginResponse {
 
 export const authService = {
     login: async (email: string, password: string): Promise<LoginResponse> => {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        const response = await axios.post(`${API_URL}/auth/login`, { email, password });
+        return response.data;
+    },
 
-        // Basic validation mock
-        if (password.length < 6) {
-            throw new Error('Invalid credentials');
-        }
-
-        // Role determination simulation (like a backend would do)
-        let role: 'owner' | 'supplier' | 'customer' = 'customer';
-        if (email.toLowerCase().includes('admin') || email.toLowerCase().includes('owner')) {
-            role = 'owner';
-        } else if (email.toLowerCase().includes('supplier')) {
-            role = 'supplier';
-        }
-
-        const user: User = {
-            id: Math.random().toString(36).substr(2, 9),
-            name: email.split('@')[0],
-            email: email,
-            role: role
-        };
-
-        return {
-            user,
-            token: 'mock-jwt-token'
-        };
+    register: async (name: string, email: string, password: string): Promise<LoginResponse> => {
+        const response = await axios.post(`${API_URL}/auth/register`, { name, email, password });
+        return response.data;
     },
 
     getCurrentUser: () => {

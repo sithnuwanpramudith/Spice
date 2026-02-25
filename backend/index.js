@@ -9,6 +9,38 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+// Auth API
+app.post('/api/auth/register', (req, res) => {
+    const { name, email, password } = req.body;
+    const id = `USR-${Math.floor(Math.random() * 100000)}`;
+    const role = 'customer';
+
+    db.run("INSERT INTO users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)",
+        [id, name, email, password, role],
+        function (err) {
+            if (err) {
+                if (err.message.includes('UNIQUE constraint failed')) {
+                    return res.status(400).json({ error: "Email already exists" });
+                }
+                return res.status(500).json({ error: err.message });
+            }
+            res.json({ user: { id, name, email, role }, token: 'mock-jwt-token' });
+        }
+    );
+});
+
+app.post('/api/auth/login', (req, res) => {
+    const { email, password } = req.body;
+
+    db.get("SELECT * FROM users WHERE email = ? AND password = ?", [email, password], (err, user) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!user) return res.status(401).json({ error: "Invalid credentials" });
+
+        const { password: _, ...userWithoutPassword } = user;
+        res.json({ user: userWithoutPassword, token: 'mock-jwt-token' });
+    });
+});
+
 // Dashboard Summary
 app.get('/api/dashboard/summary', (req, res) => {
     db.get(`
@@ -118,11 +150,129 @@ app.get('/api/orders', (req, res) => {
     });
 });
 
-app.patch('/api/orders/:id/status', (req, res) => {
-    const { status } = req.body;
-    db.run("UPDATE orders SET status = ? WHERE id = ?", [status, req.params.id], function (err) {
+app.get('/api/orders/user/:email', (req, res) => {
+    const email = req.params.email;
+    const query = `
+        SELECT o.*, oi.product_name, oi.quantity, oi.price as item_price, oi.id as item_id
+        FROM orders o
+        LEFT JOIN order_items oi ON o.id = oi.order_id
+        WHERE o.email = ?
+        ORDER BY o.timestamp DESC
+    `;
+
+    db.all(query, [email], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json({ success: true });
+
+        const ordersMap = rows.reduce((acc, row) => {
+            if (!acc[row.id]) {
+                acc[row.id] = {
+                    id: row.id,
+                    customer: row.customer,
+                    email: row.email,
+                    whatsapp: row.whatsapp,
+                    address: row.address,
+                    date: row.date,
+                    total: row.total,
+                    status: row.status,
+                    timestamp: row.timestamp,
+                    items: []
+                };
+            }
+            if (row.product_name) {
+                acc[row.id].items.push({
+                    id: row.item_id,
+                    name: row.product_name,
+                    quantity: row.quantity,
+                    price: row.item_price
+                });
+            }
+            return acc;
+        }, {});
+
+        res.json(Object.values(ordersMap));
+    });
+});
+
+app.patch('/api/orders/:id/status', (req, res) => {
+    const { status: newStatus } = req.body;
+    const orderId = req.params.id;
+
+    const deductionGroup = ['Shipped', 'Delivered'];
+
+    db.get("SELECT status FROM orders WHERE id = ?", [orderId], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.status(404).json({ error: "Order not found" });
+
+        const oldStatus = row.status;
+        const wasDeducted = deductionGroup.includes(oldStatus);
+        const isNowDeducted = deductionGroup.includes(newStatus);
+
+        // Determine stock action: -1 for deduction, 1 for restocking, 0 for none
+        let stockAction = 0;
+        if (!wasDeducted && isNowDeducted) {
+            stockAction = -1; // Moving to Shipped/Delivered
+        } else if (wasDeducted && !isNowDeducted) {
+            stockAction = 1; // Returning to Pending/Processing/Cancelled
+        }
+
+        // Start transaction
+        db.serialize(() => {
+            db.run("BEGIN TRANSACTION");
+
+            // Update order status
+            db.run("UPDATE orders SET status = ? WHERE id = ?", [newStatus, orderId], function (err) {
+                if (err) {
+                    db.run("ROLLBACK");
+                    return res.status(500).json({ error: err.message });
+                }
+
+                if (stockAction !== 0) {
+                    // Get order items
+                    db.all("SELECT product_name, quantity FROM order_items WHERE order_id = ?", [orderId], (err, items) => {
+                        if (err) {
+                            db.run("ROLLBACK");
+                            return res.status(500).json({ error: err.message });
+                        }
+
+                        if (items.length === 0) {
+                            db.run("COMMIT");
+                            return res.json({ success: true, message: "No items to update stock" });
+                        }
+
+                        let updatesCompleted = 0;
+                        items.forEach(item => {
+                            // Update stock and status for each product
+                            const changeAmount = item.quantity * stockAction;
+
+                            db.run(`
+                                UPDATE products 
+                                SET stock = stock + ?,
+                                    status = CASE 
+                                        WHEN (stock + ?) > 10 THEN 'In Stock'
+                                        WHEN (stock + ?) > 0 THEN 'Low Stock'
+                                        ELSE 'Out of Stock'
+                                    END
+                                WHERE name = ?
+                            `, [changeAmount, changeAmount, changeAmount, item.product_name], function (err) {
+                                if (err) {
+                                    db.run("ROLLBACK");
+                                    return res.status(500).json({ error: err.message });
+                                }
+
+                                updatesCompleted++;
+                                if (updatesCompleted === items.length) {
+                                    db.run("COMMIT");
+                                    res.json({ success: true, stockUpdated: true, action: stockAction === -1 ? 'deducted' : 'restocked' });
+                                }
+                            });
+                        });
+                    });
+                } else {
+                    db.run("COMMIT");
+                    res.json({ success: true, message: "No stock change needed" });
+                }
+            });
+        });
     });
 });
 
@@ -174,6 +324,27 @@ app.patch('/api/suppliers/:id/status', (req, res) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ success: true });
     });
+});
+
+app.post('/api/suppliers/register', (req, res) => {
+    const { name, email, phone, whatsapp, category, message } = req.body;
+    if (!name || !email || !phone || !category) {
+        return res.status(400).json({ error: 'Name, email, phone and category are required' });
+    }
+    const id = `SUP-${Date.now()}`;
+    db.run(
+        "INSERT INTO suppliers (id, name, email, phone, whatsapp, category, status, rating, totalOrders, message) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [id, name, email, phone, whatsapp || phone, category, 'pending', 0, 0, message || ''],
+        function (err) {
+            if (err) {
+                if (err.message.includes('UNIQUE constraint failed')) {
+                    return res.status(400).json({ error: 'Email already registered' });
+                }
+                return res.status(500).json({ error: err.message });
+            }
+            res.json({ success: true, id, message: 'Supplier registered successfully!' });
+        }
+    );
 });
 
 app.listen(port, () => {

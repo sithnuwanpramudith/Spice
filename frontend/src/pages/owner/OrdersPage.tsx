@@ -5,6 +5,8 @@ import { useOrders } from '../../context/OrderContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Order } from '../../services/orderService';
 import '../../styles/pages/dashboard.css';
+import { buildWhatsAppUrl } from '../../utils/whatsapp';
+
 /* -------------------------------------------
    ORDER DETAILS MODAL
 ------------------------------------------- */
@@ -70,7 +72,7 @@ const OrderDetailsModal: React.FC<{
                                     const whatsapp = order.whatsapp;
                                     if (whatsapp) {
                                         const message = `Hello ${order.customer}, your order #${order.id} is currently ${order.status}. Thank you for shopping with Spices!`;
-                                        const url = `https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+                                        const url = buildWhatsAppUrl(whatsapp, message);
                                         window.open(url, '_blank');
                                     }
                                 }}
@@ -203,7 +205,7 @@ export default function OrdersPage() {
                     break;
             }
             if (message) {
-                const url = `https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+                const url = buildWhatsAppUrl(whatsapp, message);
                 window.open(url, '_blank');
             }
         }

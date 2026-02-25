@@ -4,6 +4,8 @@ import { X, Mail, Lock, AlertCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
+import RegisterForm from './RegisterForm';
+
 interface UnifiedLoginModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -16,6 +18,16 @@ const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({ isOpen, onClose }
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isRegister, setIsRegister] = useState(false);
+
+    const handleLoginSuccess = (user: any) => {
+        onClose();
+        if (user.role === 'owner') {
+            navigate('/admin-dashboard');
+        } else {
+            navigate('/customer-dashboard');
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -23,19 +35,10 @@ const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({ isOpen, onClose }
         setLoading(true);
 
         try {
-            // The AuthContext now handles role determination via authService
             const user = await login({ email, password });
-
-            onClose();
-
-            // Redirect based on role returned from "backend"
-            if (user.role === 'owner') {
-                navigate('/admin-dashboard');
-            } else {
-                navigate('/customer-dashboard');
-            }
+            handleLoginSuccess(user);
         } catch (err: any) {
-            setError(err.message || 'Invalid credentials. Please try again.');
+            setError(err.response?.data?.error || 'Invalid credentials. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -81,74 +84,90 @@ const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({ isOpen, onClose }
                                 borderRadius: '18px', display: 'flex', alignItems: 'center',
                                 justifyContent: 'center', margin: '0 auto 20px', color: 'black'
                             }}>
-                                <Lock size={30} />
+                                {isRegister ? <ArrowRight size={30} /> : <Lock size={30} />}
                             </div>
-                            <h2 style={{ fontSize: '2rem', fontWeight: 800, color: 'white' }}>Welcome Back</h2>
-                            <p style={{ color: 'var(--text-muted)', marginTop: '5px' }}>Enter your credentials to continue</p>
+                            <h2 style={{ fontSize: '2rem', fontWeight: 800, color: 'white' }}>
+                                {isRegister ? 'Create Account' : 'Welcome Back'}
+                            </h2>
+                            <p style={{ color: 'var(--text-muted)', marginTop: '5px' }}>
+                                {isRegister ? 'Join our community of spice lovers' : 'Enter your credentials to continue'}
+                            </p>
                         </div>
 
-                        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            {error && (
-                                <motion.div
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
+                        {!isRegister ? (
+                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                {error && (
+                                    <motion.div
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        style={{
+                                            padding: '12px', borderRadius: '12px',
+                                            background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444',
+                                            fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px'
+                                        }}
+                                    >
+                                        <AlertCircle size={18} />
+                                        {error}
+                                    </motion.div>
+                                )}
+
+                                <div className="form-input-group" style={{ marginBottom: 0 }}>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Email Address</label>
+                                    <div style={{ position: 'relative' }}>
+                                        <Mail size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                                        <input
+                                            type="email"
+                                            required
+                                            placeholder="Enter your email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            style={{ width: '100%', padding: '14px 14px 14px 48px', background: 'rgba(255,255,255,0.03)' }}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-input-group" style={{ marginBottom: 0 }}>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Password</label>
+                                    <div style={{ position: 'relative' }}>
+                                        <Lock size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                                        <input
+                                            type="password"
+                                            required
+                                            placeholder="••••••••"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            style={{ width: '100%', padding: '14px 14px 14px 48px', background: 'rgba(255,255,255,0.03)' }}
+                                        />
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="btn-primary antigravity-hover"
                                     style={{
-                                        padding: '12px', borderRadius: '12px',
-                                        background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444',
-                                        fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px'
+                                        marginTop: '10px', width: '100%', padding: '16px',
+                                        fontSize: '1rem', fontWeight: 700, display: 'flex',
+                                        alignItems: 'center', justifyContent: 'center', gap: '10px'
                                     }}
                                 >
-                                    <AlertCircle size={18} />
-                                    {error}
-                                </motion.div>
-                            )}
-
-                            <div className="form-input-group" style={{ marginBottom: 0 }}>
-                                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Email Address</label>
-                                <div style={{ position: 'relative' }}>
-                                    <Mail size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                                    <input
-                                        type="email"
-                                        required
-                                        placeholder="Enter your email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        style={{ width: '100%', padding: '14px 14px 14px 48px', background: 'rgba(255,255,255,0.03)' }}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="form-input-group" style={{ marginBottom: 0 }}>
-                                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Password</label>
-                                <div style={{ position: 'relative' }}>
-                                    <Lock size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                                    <input
-                                        type="password"
-                                        required
-                                        placeholder="••••••••"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        style={{ width: '100%', padding: '14px 14px 14px 48px', background: 'rgba(255,255,255,0.03)' }}
-                                    />
-                                </div>
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="btn-primary antigravity-hover"
-                                style={{
-                                    marginTop: '10px', width: '100%', padding: '16px',
-                                    fontSize: '1rem', fontWeight: 700, display: 'flex',
-                                    alignItems: 'center', justifyContent: 'center', gap: '10px'
-                                }}
-                            >
-                                {loading ? 'Signing in...' : 'Sign In'} <ArrowRight size={20} />
-                            </button>
-                        </form>
+                                    {loading ? 'Signing in...' : 'Sign In'} <ArrowRight size={20} />
+                                </button>
+                            </form>
+                        ) : (
+                            <RegisterForm onSuccess={() => handleLoginSuccess({ role: 'customer' })} />
+                        )}
 
                         <div style={{ marginTop: '30px', textAlign: 'center', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                            <p>Don't have an account? <span style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 600 }}>Sign up</span></p>
+                            <p>
+                                {isRegister ? 'Already have an account?' : "Don't have an account?"}
+                                <span
+                                    onClick={() => setIsRegister(!isRegister)}
+                                    style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 600, marginLeft: '5px' }}
+                                >
+                                    {isRegister ? 'Sign in' : 'Sign up'}
+                                </span>
+                            </p>
                         </div>
                     </motion.div>
                 </div>

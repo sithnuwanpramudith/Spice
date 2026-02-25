@@ -63,6 +63,14 @@ const initDb = async () => {
             totalOrders INTEGER NOT NULL
         )`);
 
+        await runQuery(`CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE,
+            password TEXT NOT NULL,
+            role TEXT NOT NULL
+        )`);
+
         await runQuery(`CREATE TABLE IF NOT EXISTS order_items (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             order_id TEXT NOT NULL,
@@ -86,13 +94,15 @@ const initDb = async () => {
             }
         });
 
-        // Migration
+        // Migrations
         db.run("ALTER TABLE products ADD COLUMN image TEXT", (err) => {
-            if (err) {
-                if (!err.message.includes('duplicate column name')) console.error('Migration Error:', err.message);
-            } else {
-                console.log('Migration: image column added.');
-            }
+            if (err && !err.message.includes('duplicate column name')) console.error('Migration Error:', err.message);
+        });
+        db.run("ALTER TABLE suppliers ADD COLUMN whatsapp TEXT", (err) => {
+            if (err && !err.message.includes('duplicate column name')) console.error('Migration suppliers whatsapp:', err.message);
+        });
+        db.run("ALTER TABLE suppliers ADD COLUMN message TEXT", (err) => {
+            if (err && !err.message.includes('duplicate column name')) console.error('Migration suppliers message:', err.message);
         });
 
         console.log('DB Initialization completed.');

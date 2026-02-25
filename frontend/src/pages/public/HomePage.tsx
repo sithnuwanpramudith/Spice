@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingBag, ArrowRight, Plus } from 'lucide-react';
 import { useProducts } from '../../context/ProductContext';
-import SupplierAddItemForm from '../../components/supplier/SupplierAddItemForm';
+import SupplierRegisterForm from '../../components/supplier/SupplierRegisterForm';
 import UnifiedLoginModal from '../../components/auth/UnifiedLoginModal';
 import { useAuth } from '../../context/AuthContext';
 import heroBanner from '../../assets/images/hero-banner.png';
@@ -153,13 +153,7 @@ const HomePage: React.FC = () => {
                         justifyContent: 'center',
                         padding: '20px'
                     }}>
-                        <SupplierAddItemForm
-                            onClose={() => setShowSupplierModal(false)}
-                            onSuccess={() => {
-                                refreshProducts();
-                                alert('Product added successfully!');
-                            }}
-                        />
+                        <SupplierRegisterForm onClose={() => setShowSupplierModal(false)} />
                     </div>
                 )}
             </AnimatePresence>

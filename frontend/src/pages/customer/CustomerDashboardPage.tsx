@@ -8,12 +8,13 @@ import CheckoutForm from '../../components/customer/CheckoutForm';
 import OrderSuccess from '../../components/customer/OrderSuccess';
 import OrderTracking from '../../components/customer/OrderTracking';
 import Navbar from '../../components/layout/Navbar';
+import PurchaseSummary from '../../components/customer/PurchaseSummary';
 
 const CustomerDashboardPage = () => {
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [checkoutStep, setCheckoutStep] = useState<'none' | 'checkout' | 'success'>('none');
     const [orderData, setOrderData] = useState<any>(null);
-    const [activeTab, setActiveTab] = useState<'shop' | 'track'>('shop');
+    const [activeTab, setActiveTab] = useState<'shop' | 'track' | 'summary'>('shop');
 
 
     const handleCheckout = () => {
@@ -41,12 +42,12 @@ const CustomerDashboardPage = () => {
             />
 
             {/* Main Content */}
-            <main>
-                {activeTab === 'shop' ? (
-                    <ProductCatalog />
-                ) : (
-                    <OrderTracking />
-                )}
+            <main style={{ padding: '20px 0' }}>
+                <div className="container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+                    {activeTab === 'shop' && <ProductCatalog />}
+                    {activeTab === 'track' && <OrderTracking />}
+                    {activeTab === 'summary' && <PurchaseSummary />}
+                </div>
             </main>
 
             {/* Cart Drawer */}
