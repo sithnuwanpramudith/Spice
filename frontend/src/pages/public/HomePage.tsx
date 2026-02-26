@@ -275,6 +275,26 @@ const HomePage: React.FC = () => {
                                             alt={product.name}
                                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                         />
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '15px',
+                                            left: '15px',
+                                            zIndex: 2,
+                                            background: 'rgba(0,0,0,0.6)',
+                                            backdropFilter: 'blur(10px)',
+                                            padding: '4px 10px',
+                                            borderRadius: '50px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '5px',
+                                            fontSize: '0.7rem',
+                                            border: '1px solid rgba(255,255,255,0.1)'
+                                        }}>
+                                            <Star size={10} fill="var(--primary)" color="var(--primary)" />
+                                            <span style={{ fontWeight: 700 }}>
+                                                {product.rating_avg ? product.rating_avg.toFixed(1) : '5.0'}
+                                            </span>
+                                        </div>
                                         <div style={{ position: 'absolute', top: '15px', right: '15px' }}>
                                             <span style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', padding: '6px 12px', borderRadius: '50px', fontSize: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>{product.category}</span>
                                         </div>

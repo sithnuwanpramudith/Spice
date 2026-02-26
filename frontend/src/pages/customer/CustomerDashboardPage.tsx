@@ -9,12 +9,13 @@ import OrderSuccess from '../../components/customer/OrderSuccess';
 import OrderTracking from '../../components/customer/OrderTracking';
 import Navbar from '../../components/layout/Navbar';
 import PurchaseSummary from '../../components/customer/PurchaseSummary';
+import RateProducts from '../../components/customer/RateProducts';
 
 const CustomerDashboardPage = () => {
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [checkoutStep, setCheckoutStep] = useState<'none' | 'checkout' | 'success'>('none');
     const [orderData, setOrderData] = useState<any>(null);
-    const [activeTab, setActiveTab] = useState<'shop' | 'track' | 'summary'>('shop');
+    const [activeTab, setActiveTab] = useState<'shop' | 'track' | 'summary' | 'rate'>('shop');
 
 
     const handleCheckout = () => {
@@ -47,6 +48,7 @@ const CustomerDashboardPage = () => {
                     {activeTab === 'shop' && <ProductCatalog />}
                     {activeTab === 'track' && <OrderTracking />}
                     {activeTab === 'summary' && <PurchaseSummary />}
+                    {activeTab === 'rate' && <RateProducts />}
                 </div>
             </main>
 

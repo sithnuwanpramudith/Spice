@@ -9,6 +9,8 @@ export interface Product {
     description: string;
     status: 'In Stock' | 'Low Stock' | 'Out of Stock';
     image?: string;
+    rating_avg?: number;
+    review_count?: number;
 }
 
 const API_BASE_URL = 'http://localhost:5000/api';

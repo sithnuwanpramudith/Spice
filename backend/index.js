@@ -110,7 +110,7 @@ app.delete('/api/products/:id', (req, res) => {
 // Orders API
 app.get('/api/orders', (req, res) => {
     const query = `
-        SELECT o.*, oi.product_name, oi.quantity, oi.price as item_price, oi.id as item_id
+        SELECT o.*, oi.product_name, oi.product_id, oi.quantity, oi.price as item_price, oi.id as item_id
         FROM orders o
         LEFT JOIN order_items oi ON o.id = oi.order_id
         ORDER BY o.timestamp DESC
@@ -138,6 +138,7 @@ app.get('/api/orders', (req, res) => {
             if (row.product_name) {
                 acc[row.id].items.push({
                     id: row.item_id,
+                    productId: row.product_id,
                     name: row.product_name,
                     quantity: row.quantity,
                     price: row.item_price
@@ -153,7 +154,7 @@ app.get('/api/orders', (req, res) => {
 app.get('/api/orders/user/:email', (req, res) => {
     const email = req.params.email;
     const query = `
-        SELECT o.*, oi.product_name, oi.quantity, oi.price as item_price, oi.id as item_id
+        SELECT o.*, oi.product_name, oi.product_id, oi.quantity, oi.price as item_price, oi.id as item_id
         FROM orders o
         LEFT JOIN order_items oi ON o.id = oi.order_id
         WHERE o.email = ?
@@ -181,6 +182,7 @@ app.get('/api/orders/user/:email', (req, res) => {
             if (row.product_name) {
                 acc[row.id].items.push({
                     id: row.item_id,
+                    productId: row.product_id,
                     name: row.product_name,
                     quantity: row.quantity,
                     price: row.item_price
@@ -289,9 +291,9 @@ app.post('/api/orders', (req, res) => {
         });
         stmt.finalize();
 
-        const itemStmt = db.prepare("INSERT INTO order_items (order_id, product_name, quantity, price) VALUES (?, ?, ?, ?)");
+        const itemStmt = db.prepare("INSERT INTO order_items (order_id, product_id, product_name, quantity, price) VALUES (?, ?, ?, ?, ?)");
         items.forEach(item => {
-            itemStmt.run([id, item.name, item.quantity, item.price]);
+            itemStmt.run([id, item.id || item.productId, item.name, item.quantity, item.price]);
         });
         itemStmt.finalize((err) => {
             if (err) {
@@ -345,6 +347,59 @@ app.post('/api/suppliers/register', (req, res) => {
             res.json({ success: true, id, message: 'Supplier registered successfully!' });
         }
     );
+});
+
+// Reviews API
+app.post('/api/products/:id/review', (req, res) => {
+    const { rating, comment, user_email } = req.body;
+    const product_id = req.params.id;
+    const id = `REV-${Date.now()}`;
+    const timestamp = Date.now();
+
+    if (!rating || !user_email) {
+        return res.status(400).json({ error: "Rating and user email are required" });
+    }
+
+    db.serialize(() => {
+        db.run("BEGIN TRANSACTION");
+
+        // Insert the review
+        db.run(
+            "INSERT INTO product_reviews (id, product_id, user_email, rating, comment, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
+            [id, product_id, user_email, rating, comment, timestamp],
+            function (err) {
+                if (err) {
+                    db.run("ROLLBACK");
+                    return res.status(500).json({ error: err.message });
+                }
+
+                // Update product aggregate stats
+                db.get(
+                    "SELECT COUNT(*) as count, AVG(rating) as avg FROM product_reviews WHERE product_id = ?",
+                    [product_id],
+                    (err, row) => {
+                        if (err) {
+                            db.run("ROLLBACK");
+                            return res.status(500).json({ error: err.message });
+                        }
+
+                        db.run(
+                            "UPDATE products SET rating_avg = ?, review_count = ? WHERE id = ?",
+                            [row.avg || 0, row.count || 0, product_id],
+                            function (err) {
+                                if (err) {
+                                    db.run("ROLLBACK");
+                                    return res.status(500).json({ error: err.message });
+                                }
+                                db.run("COMMIT");
+                                res.json({ success: true, id, rating_avg: row.avg || 0, review_count: row.count || 0 });
+                            }
+                        );
+                    }
+                );
+            }
+        );
+    });
 });
 
 app.listen(port, () => {
