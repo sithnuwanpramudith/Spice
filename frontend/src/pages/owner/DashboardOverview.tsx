@@ -87,7 +87,6 @@ const DashboardOverview: React.FC = () => {
                         {[
                             { name: 'Add Product', icon: Package, path: '#', color: 'var(--primary)' },
                             { name: 'Supplier List', icon: Users, path: '/admin-dashboard/suppliers', color: '#4ade80' },
-                            { name: 'Reports', icon: TrendingUp, path: '/admin-dashboard/reports', color: '#60a5fa' },
                             { name: 'New Order', icon: ShoppingCart, path: '/admin-dashboard/orders', color: '#f87171' }
                         ].map(action => (
                             <button

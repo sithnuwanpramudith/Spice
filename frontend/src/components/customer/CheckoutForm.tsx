@@ -4,6 +4,7 @@ import { ShieldCheck, CreditCard, ChevronRight, ChevronLeft } from 'lucide-react
 import { useCart } from '../../context/CartContext';
 
 import { useOrders } from '../../context/OrderContext';
+import { useAuth } from '../../context/AuthContext';
 
 interface CheckoutFormProps {
     onSuccess: (orderData: any) => void;
@@ -13,10 +14,11 @@ interface CheckoutFormProps {
 const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
     const { cart, cartTotal, clearCart } = useCart();
     const { addOrder } = useOrders();
+    const { user } = useAuth();
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
-        name: '',
-        email: '',
+        name: user?.name || '',
+        email: user?.email || '',
         whatsapp: '',
         address: '',
         city: '',

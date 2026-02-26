@@ -21,7 +21,6 @@ const OwnerDashboardPage = () => {
         { name: 'Suppliers', icon: Users, path: '/admin-dashboard/suppliers' },
         { name: 'Products', icon: Package, path: '/admin-dashboard/products' },
         { name: 'Orders', icon: ShoppingCart, path: '/admin-dashboard/orders' },
-        { name: 'Reports', icon: TrendingUp, path: '/admin-dashboard/reports' },
         { name: 'Settings', icon: Settings, path: '/admin-dashboard/settings' },
     ];
 

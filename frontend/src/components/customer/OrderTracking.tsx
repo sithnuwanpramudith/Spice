@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Package, Truck, CheckCircle, Clock, ArrowLeft } from 'lucide-react';
+import { Search, Package, Truck, CheckCircle, Clock, ArrowLeft, RefreshCw } from 'lucide-react';
 import { useOrders } from '../../context/OrderContext';
 import { useAuth } from '../../context/AuthContext';
 import type { Order } from '../../services/orderService';
@@ -8,10 +8,15 @@ import OrderCard from './OrderCard';
 import '../../styles/pages/dashboard.css';
 
 const OrderTracking: React.FC = () => {
-    const { orders } = useOrders();
+    const { orders, refreshOrders, loading } = useOrders();
     const { user } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+    // Refresh orders on mount to get latest status updates from admin
+    useEffect(() => {
+        refreshOrders();
+    }, []);
 
     // Filter orders by logged-in user email and search term, memoized for performance
     const filteredOrders = useMemo(() => {
@@ -47,9 +52,36 @@ const OrderTracking: React.FC = () => {
             exit={{ opacity: 0, y: -20 }}
             style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 20px' }}
         >
-            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '40px', position: 'relative' }}>
                 <h2 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '15px', color: 'white' }}>My Orders</h2>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>Track the status of your recent purchases</p>
+
+                {/* Refresh Button */}
+                <button
+                    onClick={() => refreshOrders()}
+                    disabled={loading}
+                    style={{
+                        position: 'absolute',
+                        right: '0',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        color: 'white',
+                        padding: '10px',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '0.9rem',
+                        transition: 'all 0.3s ease'
+                    }}
+                    className="float-hover"
+                >
+                    <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                    {loading ? 'Refreshing...' : 'Refresh'}
+                </button>
             </div>
 
             {/* Search Bar */}

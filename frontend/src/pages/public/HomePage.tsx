@@ -7,6 +7,9 @@ import SupplierRegisterForm from '../../components/supplier/SupplierRegisterForm
 import UnifiedLoginModal from '../../components/auth/UnifiedLoginModal';
 import { useAuth } from '../../context/AuthContext';
 import heroBanner from '../../assets/images/hero-banner.png';
+import HeroSection from '../../components/customer/HeroSection';
+import Testimonials from '../../components/customer/Testimonials';
+import { Star } from 'lucide-react';
 
 const HomePage: React.FC = () => {
     const navigate = useNavigate();
@@ -25,73 +28,21 @@ const HomePage: React.FC = () => {
     return (
         <div style={{ minHeight: '100vh', background: 'var(--bg-dark)', color: 'white', paddingBottom: '80px' }}>
 
-            {/* Hero Section */}
-            <section style={{
-                minHeight: '85vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-                overflow: 'hidden',
-                background: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${heroBanner})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                boxShadow: 'inset 0 0 100px rgba(0,0,0,1)'
-            }}>
-                {/* Decorative gradients */}
-                <div style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: 'radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.1), transparent 70%)',
-                    zIndex: 1
-                }}></div>
-                <div style={{ textAlign: 'center', zIndex: 10, padding: '20px' }}>
-                    <motion.h1
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
-                        style={{ fontSize: '4rem', fontWeight: 800, marginBottom: '20px', letterSpacing: '-1px' }}
-                    >
-                        PREMIUM <span style={{ color: 'var(--primary)' }}>SPICES</span>
-                        <br /> FOR YOUR KITCHEN
-                    </motion.h1>
+            {/* Replacement Hero Section */}
+            <HeroSection />
 
-                    <div style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', gap: '15px' }}>
-                        {isAuthenticated ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                <span style={{ color: 'var(--text-secondary)' }}>Welcome, {user?.name}</span>
-                                <button className="btn-secondary" onClick={() => navigate(user?.role === 'owner' ? '/admin-dashboard' : '/customer-dashboard')}>Dashboard</button>
-                                <button className="btn-icon" onClick={logout} title="Logout"><ArrowRight style={{ transform: 'rotate(180deg)' }} /></button>
-                            </div>
-                        ) : (
-                            <button className="btn-primary" onClick={() => setShowLoginModal(true)}>Login</button>
-                        )}
+            {/* Top Bar for Auth (preserving existing logic) */}
+            <div style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', gap: '15px', zIndex: 100 }}>
+                {isAuthenticated ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                        <span style={{ color: 'var(--text-secondary)' }}>Welcome, {user?.name}</span>
+                        <button className="btn-secondary" onClick={() => navigate(user?.role === 'owner' ? '/admin-dashboard' : '/customer-dashboard')}>Dashboard</button>
+                        <button className="btn-icon" onClick={logout} title="Logout"><ArrowRight style={{ transform: 'rotate(180deg)' }} /></button>
                     </div>
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.2 }}
-                        style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', marginBottom: '40px', maxWidth: '600px', margin: '0 auto 40px' }}
-                    >
-                        Experience the authentic taste of hand-picked spices delivered directly to your doorstep.
-                    </motion.p>
-
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.4 }}
-                        style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}
-                    >
-                        <button
-                            className="btn-primary antigravity-hover"
-                            onClick={() => isAuthenticated ? navigate(user?.role === 'owner' ? '/admin-dashboard' : '/customer-dashboard') : setShowLoginModal(true)}
-                            style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.1rem' }}
-                        >
-                            {isAuthenticated ? 'Go to Dashboard' : 'Get Started'} <ArrowRight size={20} />
-                        </button>
-                    </motion.div>
-                </div>
-            </section>
+                ) : (
+                    <button className="btn-primary" onClick={() => setShowLoginModal(true)}>Login</button>
+                )}
+            </div>
 
             {/* Supplier Action Section */}
             <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px', marginBottom: '60px' }}>
@@ -220,6 +171,16 @@ const HomePage: React.FC = () => {
                                             fontSize: '0.8rem'
                                         }}>{product.category}</span>
                                     </div>
+                                    <div style={{ display: 'flex', gap: '2px', marginBottom: '10px' }}>
+                                        {[...Array(5)].map((_, i) => (
+                                            <Star
+                                                key={i}
+                                                size={14}
+                                                fill={i < 4 ? "var(--primary)" : "transparent"}
+                                                color={i < 4 ? "var(--primary)" : "var(--text-muted)"}
+                                            />
+                                        ))}
+                                    </div>
                                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '15px' }}>
                                         {product.description}
                                     </p>
@@ -251,6 +212,11 @@ const HomePage: React.FC = () => {
                     </div>
                 )}
             </section>
+
+            {/* New Testimonials Section */}
+            <div className="container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+                <Testimonials />
+            </div>
         </div>
     );
 };
