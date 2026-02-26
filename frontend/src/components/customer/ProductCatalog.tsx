@@ -3,7 +3,7 @@ import React from 'react';
 import { useProducts } from '../../context/ProductContext';
 import { useCart } from '../../context/CartContext';
 import { motion } from 'framer-motion';
-import { Plus, Star } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 const getPlaceholderImage = (category: string, name: string = '') => {
     const combined = (category + ' ' + name).toLowerCase();
@@ -86,19 +86,6 @@ const ProductCatalog: React.FC = () => {
                                     fontSize: '0.8rem',
                                     color: 'white'
                                 }}>{product.category}</span>
-                            </div>
-                            <div style={{ display: 'flex', gap: '2px', marginBottom: '10px' }}>
-                                {[...Array(5)].map((_, i) => (
-                                    <Star
-                                        key={i}
-                                        size={14}
-                                        fill={i < 4 ? "var(--primary)" : "transparent"}
-                                        color={i < 4 ? "var(--primary)" : "var(--text-muted)"}
-                                    />
-                                ))}
-                                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginLeft: '5px' }}>
-                                    (4.0)
-                                </span>
                             </div>
                             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '15px' }}>
                                 {product.description}

@@ -9,8 +9,6 @@ import OrderSuccess from '../../components/customer/OrderSuccess';
 import OrderTracking from '../../components/customer/OrderTracking';
 import Navbar from '../../components/layout/Navbar';
 import PurchaseSummary from '../../components/customer/PurchaseSummary';
-import HeroSection from '../../components/customer/HeroSection';
-import Testimonials from '../../components/customer/Testimonials';
 
 const CustomerDashboardPage = () => {
     const [isCartOpen, setIsCartOpen] = useState(false);
@@ -46,13 +44,7 @@ const CustomerDashboardPage = () => {
             {/* Main Content */}
             <main style={{ padding: '20px 0' }}>
                 <div className="container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
-                    {activeTab === 'shop' && (
-                        <>
-                            <HeroSection />
-                            <ProductCatalog />
-                            <Testimonials />
-                        </>
-                    )}
+                    {activeTab === 'shop' && <ProductCatalog />}
                     {activeTab === 'track' && <OrderTracking />}
                     {activeTab === 'summary' && <PurchaseSummary />}
                 </div>

@@ -1,19 +1,42 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingBag, ArrowRight, Plus } from 'lucide-react';
+import { ShoppingBag, ArrowRight, Star, ShieldCheck, Truck, ThumbsUp, Quote } from 'lucide-react';
 import { useProducts } from '../../context/ProductContext';
 import SupplierRegisterForm from '../../components/supplier/SupplierRegisterForm';
 import UnifiedLoginModal from '../../components/auth/UnifiedLoginModal';
 import { useAuth } from '../../context/AuthContext';
 import heroBanner from '../../assets/images/hero-banner.png';
-import HeroSection from '../../components/customer/HeroSection';
-import Testimonials from '../../components/customer/Testimonials';
-import { Star } from 'lucide-react';
+
+const testimonials = [
+    {
+        id: 1,
+        name: "Amara Perera",
+        role: "Home Chef",
+        content: "The aroma of these spices is unmatched. My curries have never tasted this authentic. Highly recommended!",
+        rating: 5,
+        image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1974&auto=format&fit=crop"
+    },
+    {
+        id: 2,
+        name: "Kamal Silva",
+        role: "Restaurant Owner",
+        content: "We source all our cinnamon and pepper from here. The quality is consistent and the delivery is always on time.",
+        rating: 5,
+        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1974&auto=format&fit=crop"
+    },
+    {
+        id: 3,
+        name: "Nethmi Fernando",
+        role: "Food Blogger",
+        content: "Beautiful packaging and even better quality spices. You can really tell they are hand-picked and fresh.",
+        rating: 5,
+        image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2070&auto=format&fit=crop"
+    }
+];
 
 const HomePage: React.FC = () => {
     const navigate = useNavigate();
-    // const { user } = useAuth(); // Not strictly needed unless hiding sections
     const { products, refreshProducts } = useProducts();
     const { isAuthenticated, logout, user } = useAuth();
     const [showSupplierModal, setShowSupplierModal] = useState(false);
@@ -23,69 +46,391 @@ const HomePage: React.FC = () => {
         refreshProducts();
     }, []);
 
-    const memoizedProducts = useMemo(() => products, [products]);
+    const memoizedProducts = useMemo(() => products.slice(0, 4), [products]);
 
     return (
-        <div style={{ minHeight: '100vh', background: 'var(--bg-dark)', color: 'white', paddingBottom: '80px' }}>
+        <div style={{ minHeight: '100vh', background: 'var(--bg-dark)', color: 'white', paddingBottom: '0' }}>
 
-            {/* Replacement Hero Section */}
-            <HeroSection />
+            {/* Hero Section */}
+            <section style={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                overflow: 'hidden',
+                background: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)), url(${heroBanner})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                padding: '0 20px'
+            }}>
+                {/* Decorative Elements */}
+                <div style={{
+                    position: 'absolute',
+                    top: '10%',
+                    left: '5%',
+                    width: '300px',
+                    height: '300px',
+                    background: 'var(--primary-glow)',
+                    filter: 'blur(100px)',
+                    borderRadius: '50%',
+                    zIndex: 0
+                }}></div>
 
-            {/* Top Bar for Auth (preserving existing logic) */}
-            <div style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', gap: '15px', zIndex: 100 }}>
-                {isAuthenticated ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                        <span style={{ color: 'var(--text-secondary)' }}>Welcome, {user?.name}</span>
-                        <button className="btn-secondary" onClick={() => navigate(user?.role === 'owner' ? '/admin-dashboard' : '/customer-dashboard')}>Dashboard</button>
-                        <button className="btn-icon" onClick={logout} title="Logout"><ArrowRight style={{ transform: 'rotate(180deg)' }} /></button>
-                    </div>
-                ) : (
-                    <button className="btn-primary" onClick={() => setShowLoginModal(true)}>Login</button>
-                )}
-            </div>
+                <div style={{ textAlign: 'center', zIndex: 10, maxWidth: '900px' }}>
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8 }}
+                    >
+                        <span style={{
+                            color: 'var(--primary)',
+                            textTransform: 'uppercase',
+                            letterSpacing: '4px',
+                            fontWeight: 600,
+                            fontSize: '0.9rem',
+                            marginBottom: '20px',
+                            display: 'block'
+                        }}>The Essence of Sri Lankan Heritage</span>
+                        <h1 style={{
+                            fontSize: 'clamp(3rem, 8vw, 5.5rem)',
+                            lineHeight: 1.1,
+                            fontWeight: 800,
+                            marginBottom: '30px',
+                            background: 'linear-gradient(to bottom, #fff, #b0b0b0)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent'
+                        }}>
+                            ELEVATE YOUR <br />
+                            <span style={{ color: 'var(--primary)', WebkitTextFillColor: 'var(--primary)' }}>CULINARY</span> ART
+                        </h1>
+                    </motion.div>
 
-            {/* Supplier Action Section */}
-            <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px', marginBottom: '60px' }}>
+                    <motion.p
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 0.2 }}
+                        style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', marginBottom: '40px', maxWidth: '650px', margin: '0 auto 40px' }}
+                    >
+                        Hand-selected spices from the lush islands of Ceylon, delivered with their full aromatic profile preserved just for you.
+                    </motion.p>
+
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 0.4 }}
+                        style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}
+                    >
+                        <button
+                            className="btn-primary"
+                            onClick={() => isAuthenticated ? navigate('/customer-dashboard') : setShowLoginModal(true)}
+                            style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.1rem', padding: '16px 36px', borderRadius: '50px' }}
+                        >
+                            Shop Collection <ShoppingBag size={20} />
+                        </button>
+                        <button
+                            className="btn-secondary"
+                            onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}
+                            style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.1rem', padding: '16px 36px', borderRadius: '50px', background: 'rgba(255,255,255,0.05)' }}
+                        >
+                            Our Story
+                        </button>
+                    </motion.div>
+                </div>
+
+                <div style={{ position: 'absolute', top: '30px', right: '40px', display: 'flex', gap: '20px', zIndex: 100 }}>
+                    {isAuthenticated ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                            <div style={{ textAlign: 'right' }}>
+                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Welcome back,</div>
+                                <div style={{ fontWeight: 600 }}>{user?.name}</div>
+                            </div>
+                            <button className="btn-secondary" style={{ padding: '8px 20px', borderRadius: '30px' }} onClick={() => navigate(user?.role === 'owner' ? '/admin-dashboard' : '/customer-dashboard')}>Dashboard</button>
+                            <button className="btn-icon" onClick={logout} style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', borderRadius: '50%', width: '40px', height: '40px' }}><ArrowRight style={{ transform: 'rotate(180deg)' }} /></button>
+                        </div>
+                    ) : (
+                        <button className="btn-primary" style={{ padding: '10px 30px', borderRadius: '30px' }} onClick={() => setShowLoginModal(true)}>Login</button>
+                    )}
+                </div>
+
+                {/* Scroll Indicator */}
                 <motion.div
-                    className="glass-panel antigravity-hover"
-                    whileHover={{ scale: 1.01 }}
+                    animate={{ y: [0, 10, 0] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    style={{ position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)', opacity: 0.5 }}
+                >
+                    <div style={{ width: '2px', height: '50px', background: 'linear-gradient(to bottom, var(--primary), transparent)' }}></div>
+                </motion.div>
+            </section>
+
+            {/* Trust Signals */}
+            <section style={{ padding: '80px 20px', background: 'var(--bg-darker)' }}>
+                <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', gap: '40px', flexWrap: 'wrap' }}>
+                    {[
+                        { icon: <ShieldCheck size={32} />, title: "Premium Quality", desc: "100% Organic & Hand-Picked" },
+                        { icon: <Truck size={32} />, title: "Global Shipping", desc: "Fast & Secure doorstep delivery" },
+                        { icon: <ThumbsUp size={32} />, title: "Authentic Taste", desc: "Preserving traditional Sri Lankan flavors" }
+                    ].map((signal, idx) => (
+                        <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: idx * 0.2 }}
+                            style={{ flex: '1', minWidth: '250px', display: 'flex', alignItems: 'center', gap: '20px' }}
+                        >
+                            <div style={{ color: 'var(--primary)', background: 'rgba(212, 175, 55, 0.1)', padding: '20px', borderRadius: '20px' }}>
+                                {signal.icon}
+                            </div>
+                            <div>
+                                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '5px' }}>{signal.title}</h3>
+                                <p style={{ fontSize: '0.9rem' }}>{signal.desc}</p>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </section>
+
+            {/* About Us Section */}
+            <section id="about" style={{ padding: '120px 20px', maxWidth: '1200px', margin: '0 auto' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '80px', alignItems: 'center' }}>
+                    <motion.div
+                        initial={{ opacity: 0, x: -50 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                    >
+                        <span style={{ color: 'var(--primary)', fontWeight: 600, letterSpacing: '2px' }}>OUR LEGACY</span>
+                        <h2 style={{ fontSize: '3rem', fontWeight: 800, margin: '20px 0', lineHeight: 1.2 }}>Spices That Tell A <span style={{ color: 'var(--primary)' }}>Story</span></h2>
+                        <p style={{ fontSize: '1.1rem', marginBottom: '30px' }}>
+                            For generations, our family has been committed to bringing the hidden treasures of Sri Lankan soil to the world. We don't just sell spices; we deliver a piece of our culture, tradition, and the vibrant heat of the tropics.
+                        </p>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+                            <div>
+                                <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--primary)' }}>50+</div>
+                                <div style={{ color: 'var(--text-secondary)' }}>Spices Collected</div>
+                            </div>
+                            <div>
+                                <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--primary)' }}>20+</div>
+                                <div style={{ color: 'var(--text-secondary)' }}>Local Suppliers</div>
+                            </div>
+                        </div>
+                    </motion.div>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        style={{ position: 'relative' }}
+                    >
+                        <img
+                            src="https://images.unsplash.com/photo-1532139154602-272dc273557a?q=80&w=2070&auto=format&fit=crop"
+                            alt="Spices"
+                            style={{ width: '100%', borderRadius: '40px', boxShadow: '0 30px 60px rgba(0,0,0,0.5)' }}
+                        />
+                        <div style={{ position: 'absolute', bottom: '-30px', right: '-30px', padding: '30px', background: 'var(--primary)', borderRadius: '30px', color: 'black' }}>
+                            <Star fill="currentColor" size={40} />
+                            <div style={{ fontWeight: 800, fontSize: '1.5rem', marginTop: '10px' }}>100% Pure</div>
+                        </div>
+                    </motion.div>
+                </div>
+            </section>
+
+            {/* Featured Selection */}
+            <section style={{ padding: '100px 20px', background: 'var(--bg-darker)' }}>
+                <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: '60px' }}>
+                        <div>
+                            <span style={{ color: 'var(--primary)', fontWeight: 600 }}>OUR SHOP</span>
+                            <h2 style={{ fontSize: '3rem', fontWeight: 800, marginTop: '10px' }}>Featured Collection</h2>
+                        </div>
+                        <button className="btn-secondary" style={{ borderRadius: '30px' }}>View All Products</button>
+                    </div>
+
+                    {(!products || products.length === 0) ? (
+                        <div style={{ textAlign: 'center', padding: '100px', background: 'var(--bg-card)', borderRadius: '30px' }}>Loading our premium selection...</div>
+                    ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '30px' }}>
+                            {memoizedProducts.map((product) => (
+                                <motion.div
+                                    key={product.id}
+                                    className="glass-card"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    style={{
+                                        padding: '15px',
+                                        borderRadius: '24px',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                    }}
+                                >
+                                    <div style={{
+                                        height: '280px',
+                                        borderRadius: '18px',
+                                        marginBottom: '20px',
+                                        position: 'relative',
+                                        overflow: 'hidden'
+                                    }}>
+                                        <img
+                                            src={product.image || 'https://images.unsplash.com/photo-1596560548464-f010549b84d7?q=80&w=2070&auto=format&fit=crop'}
+                                            alt={product.name}
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        />
+                                        <div style={{ position: 'absolute', top: '15px', right: '15px' }}>
+                                            <span style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', padding: '6px 12px', borderRadius: '50px', fontSize: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>{product.category}</span>
+                                        </div>
+                                    </div>
+                                    <div style={{ padding: '0 10px 10px' }}>
+                                        <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '8px' }}>{product.name}</h3>
+                                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px', height: '40px', overflow: 'hidden' }}>
+                                            {product.description}
+                                        </p>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <span style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary)' }}>
+                                                LKR {product.price.toLocaleString()}
+                                            </span>
+                                            <button
+                                                className="btn-icon"
+                                                style={{
+                                                    background: 'var(--primary)',
+                                                    color: 'black',
+                                                    width: '45px',
+                                                    height: '45px',
+                                                    borderRadius: '15px',
+                                                    border: 'none',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                <ShoppingBag size={20} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </section>
+
+            {/* Testimonials Section */}
+            <section style={{ padding: '120px 20px', maxWidth: '1200px', margin: '0 auto' }}>
+                <div style={{ textAlign: 'center', marginBottom: '80px' }}>
+                    <span style={{ color: 'var(--primary)', fontWeight: 600, letterSpacing: '2px' }}>TESTIMONIALS</span>
+                    <h2 style={{ fontSize: '3rem', fontWeight: 800, marginTop: '10px' }}>What Our Customers Say</h2>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '40px' }}>
+                    {testimonials.map((testimonial, idx) => (
+                        <motion.div
+                            key={testimonial.id}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: idx * 0.1 }}
+                            style={{
+                                background: 'rgba(255,255,255,0.02)',
+                                padding: '40px',
+                                borderRadius: '32px',
+                                border: '1px solid rgba(255,255,255,0.05)',
+                                position: 'relative'
+                            }}
+                        >
+                            <Quote size={40} style={{ color: 'var(--primary)', opacity: 0.2, position: 'absolute', top: '30px', right: '30px' }} />
+                            <div style={{ display: 'flex', gap: '4px', color: 'var(--primary)', marginBottom: '25px' }}>
+                                {[...Array(testimonial.rating)].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
+                            </div>
+                            <p style={{ fontSize: '1.1rem', fontStyle: 'italic', marginBottom: '30px', color: 'var(--text-primary)' }}>
+                                "{testimonial.content}"
+                            </p>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                <img
+                                    src={testimonial.image}
+                                    alt={testimonial.name}
+                                    style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }}
+                                />
+                                <div>
+                                    <div style={{ fontWeight: 700 }}>{testimonial.name}</div>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{testimonial.role}</div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </section>
+
+            {/* Supplier CTA */}
+            <section style={{ maxWidth: '1200px', margin: '100px auto', padding: '0 20px' }}>
+                <motion.div
+                    whileHover={{ y: -5 }}
                     style={{
-                        padding: '60px 40px',
-                        borderRadius: '32px',
+                        padding: '80px 60px',
+                        borderRadius: '40px',
                         display: 'flex',
-                        justifyContent: 'space-between',
+                        flexDirection: 'column',
                         alignItems: 'center',
-                        cursor: 'pointer',
-                        background: `linear-gradient(90deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 100%), url('https://images.unsplash.com/photo-1592323869138-1667b931853a?q=80&w=2070&auto=format&fit=crop')`,
+                        textAlign: 'center',
+                        background: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1592323869138-1667b931853a?q=80&w=2070&auto=format&fit=crop')`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         border: '1px solid rgba(255,255,255,0.1)',
                         position: 'relative',
                         overflow: 'hidden'
                     }}
-                    onClick={() => setShowSupplierModal(true)}
                 >
                     <div style={{ position: 'relative', zIndex: 2 }}>
-                        <h2 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '10px', color: 'white' }}>Are you a Supplier?</h2>
-                        <p style={{ color: 'var(--primary)', fontSize: '1.1rem', fontWeight: 500 }}>Join our premium network. Add your items instantly.</p>
-                    </div>
-                    <div style={{
-                        width: '70px',
-                        height: '70px',
-                        borderRadius: '24px',
-                        background: 'var(--primary)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'black',
-                        position: 'relative',
-                        zIndex: 2,
-                        boxShadow: '0 10px 30px rgba(212, 175, 55, 0.4)'
-                    }}>
-                        <Plus size={35} />
+                        <h2 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '20px' }}>Join Our Network</h2>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', maxWidth: '600px', marginBottom: '40px' }}>Are you a spice grower or supplier? We're always looking for authentic partners to join our global journey.</p>
+                        <button
+                            className="btn-primary"
+                            onClick={() => setShowSupplierModal(true)}
+                            style={{ padding: '16px 40px', borderRadius: '50px', fontSize: '1.1rem' }}
+                        >
+                            Register as Supplier
+                        </button>
                     </div>
                 </motion.div>
             </section>
+
+            {/* Footer */}
+            <footer style={{ padding: '100px 20px 40px', borderTop: '1px solid rgba(255,255,255,0.05)', background: 'var(--bg-darker)' }}>
+                <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '60px' }}>
+                    <div>
+                        <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '20px' }}>SPICES</h3>
+                        <p style={{ fontSize: '0.9rem' }}>Bringing the purest flavors from Sri Lankan hills to your kitchen table. Quality you can taste, heritage you can feel.</p>
+                    </div>
+                    <div>
+                        <h4 style={{ fontWeight: 700, marginBottom: '20px' }}>Shop</h4>
+                        <ul style={{ listStyle: 'none', padding: 0, fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            <li style={{ cursor: 'pointer' }}>All Spices</li>
+                            <li style={{ cursor: 'pointer' }}>Whole Spices</li>
+                            <li style={{ cursor: 'pointer' }}>Spice Powders</li>
+                            <li style={{ cursor: 'pointer' }}>Gift Sets</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 style={{ fontWeight: 700, marginBottom: '20px' }}>Support</h4>
+                        <ul style={{ listStyle: 'none', padding: 0, fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            <li style={{ cursor: 'pointer' }}>Shipping Policy</li>
+                            <li style={{ cursor: 'pointer' }}>Returns & Exchanges</li>
+                            <li style={{ cursor: 'pointer' }}>Contact Us</li>
+                            <li style={{ cursor: 'pointer' }}>FAQs</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 style={{ fontWeight: 700, marginBottom: '20px' }}>Newsletter</h4>
+                        <p style={{ fontSize: '0.85rem', marginBottom: '15px' }}>Join for exclusive offers and spice recipes.</p>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <input type="text" placeholder="Your email" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '10px 15px', borderRadius: '10px', color: 'white', flex: 1 }} />
+                            <button className="btn-primary" style={{ padding: '10px 20px' }}>Join</button>
+                        </div>
+                    </div>
+                </div>
+                <div style={{ maxWidth: '1200px', margin: '60px auto 0', textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    © 2026 Premium Spices. All Rights Reserved.
+                </div>
+            </footer>
 
             {/* Supplier Modal */}
             <AnimatePresence>
@@ -96,8 +441,8 @@ const HomePage: React.FC = () => {
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        background: 'rgba(0,0,0,0.8)',
-                        backdropFilter: 'blur(5px)',
+                        background: 'rgba(0,0,0,0.85)',
+                        backdropFilter: 'blur(10px)',
                         zIndex: 1000,
                         display: 'flex',
                         alignItems: 'center',
@@ -113,110 +458,6 @@ const HomePage: React.FC = () => {
                 isOpen={showLoginModal}
                 onClose={() => setShowLoginModal(false)}
             />
-
-            {/* Products Grid */}
-            <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
-                <h2 style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '40px', textAlign: 'center' }}>Featured Collection</h2>
-
-                {(!products || products.length === 0) ? (
-                    <div style={{ textAlign: 'center', padding: '40px' }}>Loading premium selection...</div>
-                ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '30px' }}>
-                        {memoizedProducts.map((product) => (
-                            <motion.div
-                                key={product.id}
-                                className="glass-panel antigravity-hover"
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.5 }}
-                                style={{
-                                    padding: '20px',
-                                    borderRadius: '20px',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    height: '100%'
-                                }}
-                            >
-                                <div style={{
-                                    height: '240px',
-                                    background: 'rgba(255,255,255,0.02)',
-                                    borderRadius: '16px',
-                                    marginBottom: '20px',
-                                    position: 'relative',
-                                    overflow: 'hidden'
-                                }}>
-                                    <img
-                                        src={product.image || (
-                                            product.category.toLowerCase().includes('whole') || product.name.toLowerCase().includes('cinnamon')
-                                                ? 'https://images.unsplash.com/photo-1596560548464-f010549b84d7?q=80&w=2070&auto=format&fit=crop'
-                                                : product.name.toLowerCase().includes('chili')
-                                                    ? 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=2070&auto=format&fit=crop'
-                                                    : product.name.toLowerCase().includes('pepper')
-                                                        ? 'https://images.unsplash.com/photo-1509358271058-acd22cc93898?q=80&w=2070&auto=format&fit=crop'
-                                                        : 'https://images.unsplash.com/photo-1532336414038-cf0c244b7f14?q=80&w=2076&auto=format&fit=crop'
-                                        )}
-                                        alt={product.name}
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                    />
-                                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(transparent 70%, rgba(0,0,0,0.7))' }} />
-                                </div>
-                                <div style={{ marginBottom: 'auto' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px' }}>
-                                        <h3 style={{ fontSize: '1.2rem', fontWeight: 600 }}>{product.name}</h3>
-                                        <span style={{
-                                            background: 'rgba(255,255,255,0.1)',
-                                            padding: '4px 8px',
-                                            borderRadius: '8px',
-                                            fontSize: '0.8rem'
-                                        }}>{product.category}</span>
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '2px', marginBottom: '10px' }}>
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star
-                                                key={i}
-                                                size={14}
-                                                fill={i < 4 ? "var(--primary)" : "transparent"}
-                                                color={i < 4 ? "var(--primary)" : "var(--text-muted)"}
-                                            />
-                                        ))}
-                                    </div>
-                                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '15px' }}>
-                                        {product.description}
-                                    </p>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
-                                    <span style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--primary)' }}>
-                                        LKR {product.price.toLocaleString()}
-                                    </span>
-                                    <button
-                                        className="btn-icon"
-                                        style={{
-                                            background: 'white',
-                                            color: 'black',
-                                            width: '40px',
-                                            height: '40px',
-                                            borderRadius: '50%',
-                                            border: 'none',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        <ShoppingBag size={18} />
-                                    </button>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                )}
-            </section>
-
-            {/* New Testimonials Section */}
-            <div className="container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
-                <Testimonials />
-            </div>
         </div>
     );
 };
