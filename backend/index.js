@@ -402,6 +402,42 @@ app.post('/api/products/:id/review', (req, res) => {
     });
 });
 
+// Testimonials API
+app.get('/api/testimonials', (req, res) => {
+    db.all("SELECT * FROM testimonials ORDER BY timestamp DESC LIMIT 6", [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
+app.post('/api/testimonials', (req, res) => {
+    const { user_name, user_role, content, rating, user_image } = req.body;
+    const id = `TEST-${Date.now()}`;
+    const timestamp = Date.now();
+
+    if (!user_name || !content || !rating) {
+        return res.status(400).json({ error: "Name, content and rating are required" });
+    }
+
+    db.run(
+        "INSERT INTO testimonials (id, user_name, user_role, content, rating, user_image, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [id, user_name, user_role, content, rating, user_image, timestamp],
+        function (err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true, id });
+        }
+    );
+});
+
+app.delete('/api/testimonials/:id', (req, res) => {
+    const { id } = req.params;
+    db.run("DELETE FROM testimonials WHERE id = ?", [id], function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+        if (this.changes === 0) return res.status(404).json({ error: "Testimonial not found" });
+        res.json({ success: true });
+    });
+});
+
 app.listen(port, () => {
     console.log(`Backend server running at http://localhost:${port}`);
 });

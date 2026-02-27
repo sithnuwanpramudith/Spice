@@ -94,6 +94,16 @@ const initDb = async () => {
             FOREIGN KEY(product_id) REFERENCES products(id)
         )`);
 
+        await runQuery(`CREATE TABLE IF NOT EXISTS testimonials (
+            id TEXT PRIMARY KEY,
+            user_name TEXT NOT NULL,
+            user_role TEXT,
+            content TEXT NOT NULL,
+            rating INTEGER NOT NULL,
+            user_image TEXT,
+            timestamp INTEGER NOT NULL
+        )`);
+
         // Seed initial data if needed
         const productCount = await new Promise((resolve) => {
             db.get("SELECT COUNT(*) as count FROM products", (err, row) => resolve(row ? row.count : 0));

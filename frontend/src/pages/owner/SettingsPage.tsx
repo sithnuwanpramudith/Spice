@@ -13,12 +13,15 @@ import {
     MapPin,
     Globe,
     Lock,
-    Smartphone
+    Smartphone,
+    Trash2,
+    MessageSquare
 } from 'lucide-react';
+import axios from 'axios';
 import '../../styles/pages/dashboard.css';
 
 const SettingsPage: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'general' | 'shop' | 'notifications' | 'security'>('general');
+    const [activeTab, setActiveTab] = useState<'general' | 'shop' | 'notifications' | 'security' | 'testimonials'>('general');
     const [isSaving, setIsSaving] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
 
@@ -47,6 +50,8 @@ const SettingsPage: React.FC = () => {
         enableTwoFactor: false,
         sessionTimeout: 60
     });
+    const [testimonials, setTestimonials] = useState<any[]>([]);
+    const [isLoadingTestimonials, setIsLoadingTestimonials] = useState(false);
 
     // Load settings from localStorage on mount
     useEffect(() => {
@@ -54,7 +59,32 @@ const SettingsPage: React.FC = () => {
         if (savedSettings) {
             setSettings(JSON.parse(savedSettings));
         }
+        fetchTestimonials();
     }, []);
+
+    const fetchTestimonials = async () => {
+        setIsLoadingTestimonials(true);
+        try {
+            const response = await axios.get('http://localhost:5000/api/testimonials');
+            setTestimonials(response.data);
+        } catch (err) {
+            console.error('Error fetching testimonials:', err);
+        } finally {
+            setIsLoadingTestimonials(false);
+        }
+    };
+
+    const handleDeleteTestimonial = async (id: string) => {
+        if (!window.confirm('Are you sure you want to delete this testimonial? It will be removed from the home page.')) return;
+
+        try {
+            await axios.delete(`http://localhost:5000/api/testimonials/${id}`);
+            setTestimonials(prev => prev.filter(t => t.id !== id));
+        } catch (err) {
+            console.error('Error deleting testimonial:', err);
+            alert('Failed to delete testimonial');
+        }
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target as HTMLInputElement;
@@ -82,6 +112,7 @@ const SettingsPage: React.FC = () => {
         { id: 'shop', label: 'Shop Details', icon: CreditCard },
         { id: 'notifications', label: 'Alerts', icon: Bell },
         { id: 'security', label: 'Security', icon: Shield },
+        { id: 'testimonials', label: 'Testimonials', icon: MessageSquare },
     ];
 
     const renderGeneral = () => (
@@ -193,6 +224,71 @@ const SettingsPage: React.FC = () => {
                     ))}
                 </div>
             </div>
+        </motion.div>
+    );
+
+    const renderTestimonials = () => (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="settings-section">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+                <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
+                    <MessageSquare size={20} color="var(--primary)" /> Manage Testimonials
+                </h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.05)', padding: '4px 12px', borderRadius: '50px' }}>
+                    {testimonials.length} Total
+                </span>
+            </div>
+
+            {isLoadingTestimonials ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Loading testimonials...</div>
+            ) : testimonials.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', color: 'var(--text-muted)' }}>
+                    No testimonials found.
+                </div>
+            ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    {testimonials.map((t) => (
+                        <div key={t.id} className="glass-panel" style={{ padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px' }}>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
+                                    <img
+                                        src={t.user_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(t.user_name)}&background=D4AF37&color=fff`}
+                                        alt={t.user_name}
+                                        style={{ width: '32px', height: '32px', borderRadius: '8px', objectFit: 'cover' }}
+                                    />
+                                    <div>
+                                        <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'white' }}>{t.user_name}</div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--primary)' }}>{t.user_role}</div>
+                                    </div>
+                                    <div style={{ marginLeft: 'auto', display: 'flex', gap: '2px' }}>
+                                        {[...Array(5)].map((_, i) => (
+                                            <Star key={i} size={12} fill={i < t.rating ? 'var(--primary)' : 'transparent'} color={i < t.rating ? 'var(--primary)' : 'rgba(255,255,255,0.2)'} />
+                                        ))}
+                                    </div>
+                                </div>
+                                <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)', fontStyle: 'italic', lineHeight: 1.5 }}>"{t.content}"</p>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '10px' }}>
+                                    {new Date(t.timestamp).toLocaleDateString()} at {new Date(t.timestamp).toLocaleTimeString()}
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => handleDeleteTestimonial(t.id)}
+                                className="btn-icon float-hover"
+                                style={{
+                                    background: 'rgba(239, 68, 68, 0.1)',
+                                    color: '#ef4444',
+                                    border: 'none',
+                                    borderRadius: '10px',
+                                    padding: '10px',
+                                    cursor: 'pointer'
+                                }}
+                                title="Delete Testimonial"
+                            >
+                                <Trash2 size={18} />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
         </motion.div>
     );
 
@@ -318,6 +414,7 @@ const SettingsPage: React.FC = () => {
                     {activeTab === 'shop' && renderShop()}
                     {activeTab === 'notifications' && renderNotifications()}
                     {activeTab === 'security' && renderSecurity()}
+                    {activeTab === 'testimonials' && renderTestimonials()}
                 </div>
             </div>
 
@@ -374,6 +471,12 @@ const SettingsPage: React.FC = () => {
                 }
                 .toggle-switch.active .toggle-knob {
                     left: 23px;
+                }
+                .btn-icon {
+                    transition: all 0.3s ease;
+                }
+                .btn-icon:hover {
+                    transform: scale(1.1);
                 }
             `}</style>
         </div>

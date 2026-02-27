@@ -10,8 +10,8 @@ import UnifiedLoginModal from '../auth/UnifiedLoginModal';
 import { useNavigate } from 'react-router-dom';
 
 interface NavbarProps {
-    activeTab: 'shop' | 'track' | 'summary' | 'rate';
-    setActiveTab: (tab: 'shop' | 'track' | 'summary' | 'rate') => void;
+    activeTab: 'shop' | 'track' | 'summary' | 'feedback';
+    setActiveTab: (tab: 'shop' | 'track' | 'summary' | 'feedback') => void;
     setIsCartOpen: (isOpen: boolean) => void;
 }
 
@@ -38,7 +38,7 @@ const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, setIsCartOpen 
             </div>
 
             <nav className="navbar-nav" style={{ display: 'flex', gap: '40px', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
-                {['shop', 'track', 'summary', 'rate'].map((tab) => (
+                {['shop', 'track', 'summary', 'feedback'].map((tab) => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab as any)}
@@ -57,7 +57,7 @@ const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, setIsCartOpen 
                             letterSpacing: '1px'
                         }}
                     >
-                        {tab === 'shop' ? 'The Collection' : tab === 'track' ? 'Orders' : tab === 'summary' ? 'Journal' : 'Rate'}
+                        {tab === 'shop' ? 'The Collection' : tab === 'track' ? 'Orders' : tab === 'summary' ? 'Journal' : 'Feedback'}
                         {activeTab === tab && (
                             <motion.div
                                 layoutId="nav-underline"

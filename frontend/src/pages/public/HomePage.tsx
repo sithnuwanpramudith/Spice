@@ -7,33 +7,17 @@ import SupplierRegisterForm from '../../components/supplier/SupplierRegisterForm
 import UnifiedLoginModal from '../../components/auth/UnifiedLoginModal';
 import { useAuth } from '../../context/AuthContext';
 import heroBanner from '../../assets/images/hero-banner.png';
+import axios from 'axios';
 
-const testimonials = [
-    {
-        id: 1,
-        name: "Amara Perera",
-        role: "Home Chef",
-        content: "The aroma of these spices is unmatched. My curries have never tasted this authentic. Highly recommended!",
-        rating: 5,
-        image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1974&auto=format&fit=crop"
-    },
-    {
-        id: 2,
-        name: "Kamal Silva",
-        role: "Restaurant Owner",
-        content: "We source all our cinnamon and pepper from here. The quality is consistent and the delivery is always on time.",
-        rating: 5,
-        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1974&auto=format&fit=crop"
-    },
-    {
-        id: 3,
-        name: "Nethmi Fernando",
-        role: "Food Blogger",
-        content: "Beautiful packaging and even better quality spices. You can really tell they are hand-picked and fresh.",
-        rating: 5,
-        image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2070&auto=format&fit=crop"
-    }
-];
+interface Testimonial {
+    id: string;
+    user_name: string;
+    user_role: string;
+    content: string;
+    rating: number;
+    user_image: string;
+}
+
 
 const HomePage: React.FC = () => {
     const navigate = useNavigate();
@@ -41,10 +25,21 @@ const HomePage: React.FC = () => {
     const { isAuthenticated, logout, user } = useAuth();
     const [showSupplierModal, setShowSupplierModal] = useState(false);
     const [showLoginModal, setShowLoginModal] = useState(false);
+    const [dynamicTestimonials, setDynamicTestimonials] = useState<Testimonial[]>([]);
 
     useEffect(() => {
         refreshProducts();
+        fetchTestimonials();
     }, []);
+
+    const fetchTestimonials = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/api/testimonials');
+            setDynamicTestimonials(response.data);
+        } catch (err) {
+            console.error('Error fetching testimonials:', err);
+        }
+    };
 
     const memoizedProducts = useMemo(() => products.slice(0, 4), [products]);
 
@@ -337,47 +332,98 @@ const HomePage: React.FC = () => {
             {/* Testimonials Section */}
             <section style={{ padding: '120px 20px', maxWidth: '1200px', margin: '0 auto' }}>
                 <div style={{ textAlign: 'center', marginBottom: '80px' }}>
-                    <span style={{ color: 'var(--primary)', fontWeight: 600, letterSpacing: '2px' }}>TESTIMONIALS</span>
-                    <h2 style={{ fontSize: '3rem', fontWeight: 800, marginTop: '10px' }}>What Our Customers Say</h2>
+                    <span style={{ color: 'var(--primary)', fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase' }}>Community Voice</span>
+                    <h2 style={{ fontSize: '3.5rem', fontWeight: 800, marginTop: '10px' }}>What Our <span style={{ color: 'var(--primary)' }}>Customers</span> Say</h2>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '40px' }}>
-                    {testimonials.map((testimonial, idx) => (
-                        <motion.div
-                            key={testimonial.id}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: idx * 0.1 }}
-                            style={{
-                                background: 'rgba(255,255,255,0.02)',
-                                padding: '40px',
-                                borderRadius: '32px',
-                                border: '1px solid rgba(255,255,255,0.05)',
-                                position: 'relative'
-                            }}
-                        >
-                            <Quote size={40} style={{ color: 'var(--primary)', opacity: 0.2, position: 'absolute', top: '30px', right: '30px' }} />
-                            <div style={{ display: 'flex', gap: '4px', color: 'var(--primary)', marginBottom: '25px' }}>
-                                {[...Array(testimonial.rating)].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
-                            </div>
-                            <p style={{ fontSize: '1.1rem', fontStyle: 'italic', marginBottom: '30px', color: 'var(--text-primary)' }}>
-                                "{testimonial.content}"
-                            </p>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                <img
-                                    src={testimonial.image}
-                                    alt={testimonial.name}
-                                    style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }}
-                                />
+                {dynamicTestimonials.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '60px', background: 'rgba(255,255,255,0.02)', borderRadius: '30px', color: 'var(--text-secondary)' }}>
+                        Be the first to share your experience with our premium spices!
+                    </div>
+                ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '30px' }}>
+                        {dynamicTestimonials.map((testimonial, idx) => (
+                            <motion.div
+                                key={testimonial.id}
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: idx * 0.1, duration: 0.6 }}
+                                whileHover={{ y: -10 }}
+                                style={{
+                                    background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
+                                    padding: '45px',
+                                    borderRadius: '40px',
+                                    border: '1px solid rgba(255,255,255,0.05)',
+                                    position: 'relative',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'space-between'
+                                }}
+                            >
+                                <Quote size={60} style={{ color: 'var(--primary)', opacity: 0.1, position: 'absolute', top: '30px', right: '35px' }} />
+
                                 <div>
-                                    <div style={{ fontWeight: 700 }}>{testimonial.name}</div>
-                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{testimonial.role}</div>
+                                    <div style={{ display: 'flex', gap: '6px', color: 'var(--primary)', marginBottom: '30px' }}>
+                                        {[...Array(5)].map((_, i) => (
+                                            <Star
+                                                key={i}
+                                                size={18}
+                                                fill={i < testimonial.rating ? "var(--primary)" : "transparent"}
+                                                stroke={i < testimonial.rating ? "var(--primary)" : "rgba(255,255,255,0.1)"}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    <p style={{
+                                        lineHeight: 1.7,
+                                        fontSize: '1.15rem',
+                                        fontStyle: 'italic',
+                                        marginBottom: '40px',
+                                        color: 'rgba(255,255,255,0.9)',
+                                        fontWeight: 400
+                                    }}>
+                                        "{testimonial.content}"
+                                    </p>
                                 </div>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                                    <div style={{ position: 'relative' }}>
+                                        <img
+                                            src={testimonial.user_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.user_name)}&background=D4AF37&color=fff`}
+                                            alt={testimonial.user_name}
+                                            style={{
+                                                width: '60px',
+                                                height: '60px',
+                                                borderRadius: '20px',
+                                                objectFit: 'cover',
+                                                border: '2px solid rgba(212, 175, 55, 0.2)'
+                                            }}
+                                        />
+                                        <div style={{
+                                            position: 'absolute',
+                                            bottom: '-5px',
+                                            right: '-5px',
+                                            background: 'var(--primary)',
+                                            padding: '4px',
+                                            borderRadius: '50%',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            color: 'black'
+                                        }}>
+                                            <Star size={10} fill="currentColor" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'white' }}>{testimonial.user_name}</div>
+                                        <div style={{ fontSize: '0.9rem', color: 'var(--primary)', opacity: 0.8, fontWeight: 600 }}>{testimonial.user_role}</div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                )}
             </section>
 
             {/* Supplier CTA */}
