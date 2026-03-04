@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../api/config';
 import { useAuth } from '../../context/AuthContext';
 import { ShoppingBag, Box, TrendingUp, Award, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -19,7 +20,7 @@ const PurchaseSummary = () => {
         const fetchSummary = async () => {
             if (!user?.email) return;
             try {
-                const response = await axios.get(`http://localhost:5000/api/orders/user/${user.email}`);
+                const response = await axios.get(`${API_BASE_URL}/orders/user/${user.email}`);
                 const orders = response.data;
 
                 const itemMap: { [key: string]: SummaryItem } = {};

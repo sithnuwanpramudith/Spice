@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Settings,
+    Star,
     Store,
     Bell,
     Shield,
@@ -18,6 +18,7 @@ import {
     MessageSquare
 } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../api/config';
 import '../../styles/pages/dashboard.css';
 
 const SettingsPage: React.FC = () => {
@@ -65,7 +66,7 @@ const SettingsPage: React.FC = () => {
     const fetchTestimonials = async () => {
         setIsLoadingTestimonials(true);
         try {
-            const response = await axios.get('http://localhost:5000/api/testimonials');
+            const response = await axios.get(`${API_BASE_URL}/testimonials`);
             setTestimonials(response.data);
         } catch (err) {
             console.error('Error fetching testimonials:', err);
@@ -78,7 +79,7 @@ const SettingsPage: React.FC = () => {
         if (!window.confirm('Are you sure you want to delete this testimonial? It will be removed from the home page.')) return;
 
         try {
-            await axios.delete(`http://localhost:5000/api/testimonials/${id}`);
+            await axios.delete(`${API_BASE_URL}/testimonials/${id}`);
             setTestimonials(prev => prev.filter(t => t.id !== id));
         } catch (err) {
             console.error('Error deleting testimonial:', err);

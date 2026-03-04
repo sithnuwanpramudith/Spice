@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../api/config';
 
 export interface Product {
     id: string;
@@ -13,7 +14,6 @@ export interface Product {
     review_count?: number;
 }
 
-const API_BASE_URL = 'http://localhost:5000/api';
 
 export const productService = {
     getProducts: async (): Promise<Product[]> => {

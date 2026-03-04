@@ -8,6 +8,7 @@ import UnifiedLoginModal from '../../components/auth/UnifiedLoginModal';
 import { useAuth } from '../../context/AuthContext';
 import heroBanner from '../../assets/images/hero-banner.png';
 import axios from 'axios';
+import { API_BASE_URL } from '../../api/config';
 
 interface Testimonial {
     id: string;
@@ -34,7 +35,7 @@ const HomePage: React.FC = () => {
 
     const fetchTestimonials = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/testimonials');
+            const response = await axios.get(`${API_BASE_URL}/testimonials`);
             setDynamicTestimonials(response.data);
         } catch (err) {
             console.error('Error fetching testimonials:', err);

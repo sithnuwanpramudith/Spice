@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { User, Mail, Phone, MessageSquare, Tag, X, CheckCircle } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../api/config';
 
 interface Props {
     onClose: () => void;
@@ -23,7 +24,7 @@ const SupplierRegisterForm: React.FC<Props> = ({ onClose }) => {
         setError('');
         setLoading(true);
         try {
-            await axios.post('http://localhost:5000/api/suppliers/register', formData);
+            await axios.post(`${API_BASE_URL}/suppliers/register`, formData);
             setSuccess(true);
         } catch (err: any) {
             setError(err.response?.data?.error || 'Registration failed. Please try again.');

@@ -3,6 +3,7 @@ import StatCard from '../../components/owner/StatCard';
 import { TrendingUp, Users, Package, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../../api/config';
 import '../../styles/pages/dashboard.css';
 
 const DashboardOverview: React.FC = () => {
@@ -18,7 +19,7 @@ const DashboardOverview: React.FC = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/dashboard/summary');
+                const response = await axios.get(`${API_BASE_URL}/dashboard/summary`);
                 setStats(response.data);
             } catch (error) {
                 console.error('Failed to fetch dashboard stats:', error);

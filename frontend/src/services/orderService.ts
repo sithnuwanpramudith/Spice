@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../api/config';
 
 export interface OrderItem {
     id: string;
@@ -20,7 +21,6 @@ export interface Order {
     timestamp: number;
 }
 
-const API_BASE_URL = 'http://localhost:5000/api';
 
 export const orderService = {
     getOrders: async (): Promise<Order[]> => {

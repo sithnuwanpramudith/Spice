@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../api/config';
 
 export interface Supplier {
     id: string;
@@ -13,7 +14,6 @@ export interface Supplier {
     totalOrders: number;
 }
 
-const API_BASE_URL = 'http://localhost:5000/api';
 
 export const supplierService = {
     getSuppliers: async (): Promise<Supplier[]> => {
