@@ -40,6 +40,20 @@ app.post('/api/auth/login', (req, res) => {
     });
 });
 
+app.patch('/api/auth/change-password', (req, res) => {
+    const { email, currentPassword, newPassword } = req.body;
+
+    db.get("SELECT * FROM users WHERE email = ? AND password = ?", [email, currentPassword], (err, user) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!user) return res.status(401).json({ error: "Incorrect current password" });
+
+        db.run("UPDATE users SET password = ? WHERE email = ?", [newPassword, email], function (err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true, message: "Password updated successfully" });
+        });
+    });
+});
+
 // Dashboard Summary
 app.get('/api/dashboard/summary', (req, res) => {
     db.get(`

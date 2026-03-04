@@ -30,6 +30,7 @@ const SettingsPage: React.FC = () => {
     const [settings, setSettings] = useState({
         // General Settings
         storeName: 'Spices Premium',
+        tagline: 'The Essence of Sri Lankan Heritage',
         contactEmail: 'admin@spices.com',
         contactPhone: '+94 77 123 4567',
         address: '123 Spice Garden, Kandy, Sri Lanka',
@@ -51,6 +52,14 @@ const SettingsPage: React.FC = () => {
         enableTwoFactor: false,
         sessionTimeout: 60
     });
+
+    const [passwordData, setPasswordData] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+    });
+    const [passwordLoading, setPasswordLoading] = useState(false);
+    const [passwordMessage, setPasswordMessage] = useState({ type: '', text: '' });
     const [testimonials, setTestimonials] = useState<any[]>([]);
     const [isLoadingTestimonials, setIsLoadingTestimonials] = useState(false);
 
@@ -148,6 +157,13 @@ const SettingsPage: React.FC = () => {
                     <div style={{ position: 'relative' }}>
                         <Globe size={16} className="input-icon" />
                         <input name="website" value={settings.website} onChange={handleChange} style={{ paddingLeft: '40px' }} />
+                    </div>
+                </div>
+                <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                    <label>STORE TAGLINE</label>
+                    <div style={{ position: 'relative' }}>
+                        <MessageSquare size={16} className="input-icon" />
+                        <input name="tagline" value={settings.tagline} onChange={handleChange} style={{ paddingLeft: '40px' }} placeholder="e.g. Purest Flavors from Ceylon" />
                     </div>
                 </div>
                 <div className="form-group" style={{ gridColumn: 'span 2' }}>
@@ -293,21 +309,107 @@ const SettingsPage: React.FC = () => {
         </motion.div>
     );
 
+    const handlePasswordChange = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setPasswordMessage({ type: '', text: '' });
+
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+            setPasswordMessage({ type: 'error', text: 'New passwords do not match' });
+            return;
+        }
+
+        const currentUser = JSON.parse(localStorage.getItem('spice_user') || '{}');
+        if (!currentUser.email) {
+            setPasswordMessage({ type: 'error', text: 'User session not found' });
+            return;
+        }
+
+        setPasswordLoading(true);
+        try {
+            await axios.patch(`${API_BASE_URL}/auth/change-password`, {
+                email: currentUser.email,
+                currentPassword: passwordData.currentPassword,
+                newPassword: passwordData.newPassword
+            });
+            setPasswordMessage({ type: 'success', text: 'Password updated successfully' });
+            setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        } catch (err: any) {
+            setPasswordMessage({ type: 'error', text: err.response?.data?.error || 'Failed to update password' });
+        } finally {
+            setPasswordLoading(false);
+        }
+    };
+
     const renderSecurity = () => (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="settings-section">
             <h3 style={{ marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Shield size={20} color="var(--primary)" /> Security & Privacy
             </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
-                <button className="glass-panel float-hover" style={{ padding: '20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '15px', border: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', textAlign: 'left' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(212, 175, 55, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Lock size={20} color="var(--primary)" />
-                    </div>
-                    <div>
-                        <p style={{ fontSize: '0.9rem', fontWeight: 600 }}>Change Password</p>
-                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Update your login credentials</p>
-                    </div>
-                </button>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                <div className="glass-panel" style={{ padding: '25px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <h4 style={{ marginBottom: '20px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Lock size={18} color="var(--primary)" /> Change Password
+                    </h4>
+
+                    {passwordMessage.text && (
+                        <div style={{
+                            padding: '12px',
+                            borderRadius: '8px',
+                            marginBottom: '20px',
+                            fontSize: '0.9rem',
+                            background: passwordMessage.type === 'success' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                            color: passwordMessage.type === 'success' ? '#4ade80' : '#ef4444',
+                            border: `1px solid ${passwordMessage.type === 'success' ? 'rgba(74, 222, 128, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`
+                        }}>
+                            {passwordMessage.text}
+                        </div>
+                    )}
+
+                    <form onSubmit={handlePasswordChange} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                        <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                            <label>CURRENT PASSWORD</label>
+                            <input
+                                type="password"
+                                value={passwordData.currentPassword}
+                                onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                                placeholder="Enter current password"
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>NEW PASSWORD</label>
+                            <input
+                                type="password"
+                                value={passwordData.newPassword}
+                                onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                                placeholder="Min 6 characters"
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>CONFIRM NEW PASSWORD</label>
+                            <input
+                                type="password"
+                                value={passwordData.confirmPassword}
+                                onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                                placeholder="Repeat new password"
+                                required
+                            />
+                        </div>
+                        <div style={{ gridColumn: 'span 2', marginTop: '10px' }}>
+                            <button
+                                type="submit"
+                                disabled={passwordLoading}
+                                className="btn-primary float-hover"
+                                style={{ width: '100%', padding: '12px' }}
+                            >
+                                {passwordLoading ? 'Updating...' : 'Update Password'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
                 <div className="glass-panel" style={{ padding: '20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '15px', border: '1px solid rgba(255,255,255,0.05)' }}>
                     <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(96, 165, 250, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Shield size={20} color="#60a5fa" />

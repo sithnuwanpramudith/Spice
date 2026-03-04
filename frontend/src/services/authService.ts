@@ -17,12 +17,12 @@ export interface LoginResponse {
 
 export const authService = {
     login: async (email: string, password: string): Promise<LoginResponse> => {
-        const response = await axios.post(`${API_URL}/auth/login`, { email, password });
+        const response = await axios.post(`${API_URL}/login`, { email, password });
         return response.data;
     },
 
     register: async (name: string, email: string, password: string): Promise<LoginResponse> => {
-        const response = await axios.post(`${API_URL}/auth/register`, { name, email, password });
+        const response = await axios.post(`${API_URL}/register`, { name, email, password });
         return response.data;
     },
 

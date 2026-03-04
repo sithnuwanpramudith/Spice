@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingBag, ArrowRight, Star, ShieldCheck, Truck, ThumbsUp, Quote } from 'lucide-react';
+import { ShoppingBag, ArrowRight, Star, ShieldCheck, Truck, ThumbsUp, Quote, Smartphone } from 'lucide-react';
 import { useProducts } from '../../context/ProductContext';
 import SupplierRegisterForm from '../../components/supplier/SupplierRegisterForm';
 import UnifiedLoginModal from '../../components/auth/UnifiedLoginModal';
@@ -27,8 +27,24 @@ const HomePage: React.FC = () => {
     const [showSupplierModal, setShowSupplierModal] = useState(false);
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [dynamicTestimonials, setDynamicTestimonials] = useState<Testimonial[]>([]);
+    const [settings, setSettings] = useState({
+        storeName: 'Spices Premium',
+        tagline: 'The Essence of Sri Lankan Heritage',
+        contactEmail: 'admin@spices.com',
+        contactPhone: '+94 77 123 4567',
+        address: '123 Spice Garden, Kandy, Sri Lanka',
+        adminWhatsApp: '+94 77 123 4567',
+        isBakeryOpen: true,
+        currency: 'LKR',
+        minOrderAmount: 1000,
+        deliveryCharge: 350
+    });
 
     useEffect(() => {
+        const savedSettings = localStorage.getItem('admin_settings');
+        if (savedSettings) {
+            setSettings(JSON.parse(savedSettings));
+        }
         refreshProducts();
         fetchTestimonials();
     }, []);
@@ -87,7 +103,7 @@ const HomePage: React.FC = () => {
                             fontSize: '0.9rem',
                             marginBottom: '20px',
                             display: 'block'
-                        }}>The Essence of Sri Lankan Heritage</span>
+                        }}>{settings.tagline}</span>
                         <h1 style={{
                             fontSize: 'clamp(3rem, 8vw, 5.5rem)',
                             lineHeight: 1.1,
@@ -120,9 +136,19 @@ const HomePage: React.FC = () => {
                         <button
                             className="btn-primary"
                             onClick={() => isAuthenticated ? navigate('/customer-dashboard') : setShowLoginModal(true)}
-                            style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.1rem', padding: '16px 36px', borderRadius: '50px' }}
+                            disabled={!settings.isBakeryOpen}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                fontSize: '1.1rem',
+                                padding: '16px 36px',
+                                borderRadius: '50px',
+                                opacity: settings.isBakeryOpen ? 1 : 0.6,
+                                cursor: settings.isBakeryOpen ? 'pointer' : 'not-allowed'
+                            }}
                         >
-                            Shop Collection <ShoppingBag size={20} />
+                            {settings.isBakeryOpen ? 'Shop Collection' : 'Shop Temporarily Closed'} <ShoppingBag size={20} />
                         </button>
                         <button
                             className="btn-secondary"
@@ -302,7 +328,7 @@ const HomePage: React.FC = () => {
                                         </p>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <span style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary)' }}>
-                                                LKR {product.price.toLocaleString()}
+                                                {settings.currency} {product.price.toLocaleString()}
                                             </span>
                                             <button
                                                 className="btn-icon"
@@ -464,8 +490,8 @@ const HomePage: React.FC = () => {
             <footer style={{ padding: '100px 20px 40px', borderTop: '1px solid rgba(255,255,255,0.05)', background: 'var(--bg-darker)' }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '60px' }}>
                     <div>
-                        <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '20px' }}>SPICES</h3>
-                        <p style={{ fontSize: '0.9rem' }}>Bringing the purest flavors from Sri Lankan hills to your kitchen table. Quality you can taste, heritage you can feel.</p>
+                        <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '20px' }}>{settings.storeName.toUpperCase()}</h3>
+                        <p style={{ fontSize: '0.9rem' }}>{settings.tagline}. Quality you can taste, heritage you can feel.</p>
                     </div>
                     <div>
                         <h4 style={{ fontWeight: 700, marginBottom: '20px' }}>Shop</h4>
@@ -479,10 +505,10 @@ const HomePage: React.FC = () => {
                     <div>
                         <h4 style={{ fontWeight: 700, marginBottom: '20px' }}>Support</h4>
                         <ul style={{ listStyle: 'none', padding: 0, fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            <li style={{ cursor: 'pointer' }}>Shipping Policy</li>
-                            <li style={{ cursor: 'pointer' }}>Returns & Exchanges</li>
-                            <li style={{ cursor: 'pointer' }}>Contact Us</li>
-                            <li style={{ cursor: 'pointer' }}>FAQs</li>
+                            <li style={{ color: 'var(--text-secondary)' }}>{settings.contactEmail}</li>
+                            <li style={{ color: 'var(--text-secondary)' }}>{settings.contactPhone}</li>
+                            <li style={{ color: 'var(--text-secondary)' }}>{settings.address}</li>
+                            <li style={{ cursor: 'pointer', marginTop: '10px', textDecoration: 'underline' }}>Contact Us</li>
                         </ul>
                     </div>
                     <div>
@@ -525,6 +551,84 @@ const HomePage: React.FC = () => {
                 isOpen={showLoginModal}
                 onClose={() => setShowLoginModal(false)}
             />
+
+            {/* Shop Closed Banner */}
+            {!settings.isBakeryOpen && (
+                <motion.div
+                    initial={{ height: 0 }}
+                    animate={{ height: 'auto' }}
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        zIndex: 2000,
+                        background: '#ef4444',
+                        color: 'white',
+                        textAlign: 'center',
+                        padding: '12px 20px',
+                        fontWeight: 800,
+                        fontSize: '0.9rem',
+                        letterSpacing: '1px',
+                        boxShadow: '0 4px 15px rgba(239, 68, 68, 0.4)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '15px'
+                    }}
+                >
+                    <Star size={18} fill="white" /> SHOP CURRENTLY CLOSED - ORDERS ARE TEMPORARILY DISABLED <Star size={18} fill="white" />
+                </motion.div>
+            )}
+
+            {/* Delivery Info Banner */}
+            {settings.isBakeryOpen && settings.minOrderAmount > 0 && (
+                <div style={{
+                    background: 'var(--primary)',
+                    color: 'black',
+                    padding: '8px',
+                    textAlign: 'center',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    letterSpacing: '1px'
+                }}>
+                    FREE DELIVERY ON ORDERS OVER {settings.currency} {settings.minOrderAmount.toLocaleString()} | STANDARD SHIPPING {settings.currency} {settings.deliveryCharge.toLocaleString()}
+                </div>
+            )}
+
+            {/* Floating WhatsApp Button */}
+            <a
+                href={`https://wa.me/${settings.adminWhatsApp.replace(/\+/g, '').replace(/\s/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Chat with us on WhatsApp"
+                style={{
+                    position: 'fixed',
+                    bottom: '30px',
+                    right: '30px',
+                    width: '60px',
+                    height: '60px',
+                    background: '#25D366',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    boxShadow: '0 10px 25px rgba(37, 211, 102, 0.4)',
+                    zIndex: 1500,
+                    transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                }}
+                className="whatsapp-float"
+            >
+                <Smartphone size={32} />
+            </a>
+
+            <style>{`
+                .whatsapp-float:hover {
+                    transform: scale(1.1) translateY(-5px);
+                    box-shadow: 0 15px 30px rgba(37, 211, 102, 0.5);
+                }
+            `}</style>
         </div>
     );
 };
